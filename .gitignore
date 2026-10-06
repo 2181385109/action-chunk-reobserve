@@ -1,0 +1,19 @@
+# env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# big files
+outputs/
+*.mp4
+*.avi
+*.gif
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+*.bin
+wandb/
+# logs
+*.log
