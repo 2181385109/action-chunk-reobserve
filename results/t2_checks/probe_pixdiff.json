@@ -1,0 +1,145 @@
+{
+ "what": "aloha 种子 0、B=1，GPU(D3D12) 渲染，三个独立进程的首帧+20 步画面逐像素比较",
+ "runs": {
+  "frames_a": {
+   "renderer": "D3D12 (NVIDIA GeForce RTX 4060 Laptop GPU)",
+   "same_state_rerender_equal_to_first": [
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "same_state_rerender_n_diff_values": [
+    0,
+    9,
+    33,
+    21,
+    18
+   ]
+  },
+  "frames_b": {
+   "renderer": "D3D12 (NVIDIA GeForce RTX 4060 Laptop GPU)",
+   "same_state_rerender_equal_to_first": [
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "same_state_rerender_n_diff_values": [
+    0,
+    15,
+    9,
+    15,
+    9
+   ]
+  },
+  "frames_c": {
+   "renderer": "D3D12 (NVIDIA GeForce RTX 4060 Laptop GPU)",
+   "same_state_rerender_equal_to_first": [
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "same_state_rerender_n_diff_values": [
+    0,
+    12,
+    27,
+    3,
+    9
+   ]
+  }
+ },
+ "pairs": [
+  {
+   "a": "frames_a",
+   "b": "frames_b",
+   "n_values_differ_per_step": [
+    0,
+    33,
+    3,
+    15,
+    48,
+    18,
+    9,
+    6,
+    21,
+    36,
+    36,
+    39,
+    33,
+    3,
+    24,
+    33,
+    21,
+    3,
+    21,
+    51,
+    15
+   ],
+   "max_abs_diff": 1,
+   "total_values_per_frame": 921600
+  },
+  {
+   "a": "frames_a",
+   "b": "frames_c",
+   "n_values_differ_per_step": [
+    15,
+    21,
+    0,
+    36,
+    18,
+    18,
+    0,
+    33,
+    6,
+    24,
+    24,
+    42,
+    54,
+    3,
+    33,
+    9,
+    6,
+    30,
+    18,
+    21,
+    36
+   ],
+   "max_abs_diff": 1,
+   "total_values_per_frame": 921600
+  },
+  {
+   "a": "frames_b",
+   "b": "frames_c",
+   "n_values_differ_per_step": [
+    15,
+    18,
+    3,
+    21,
+    36,
+    0,
+    9,
+    39,
+    27,
+    36,
+    18,
+    21,
+    63,
+    0,
+    51,
+    42,
+    27,
+    27,
+    3,
+    36,
+    51
+   ],
+   "max_abs_diff": 1,
+   "total_values_per_frame": 921600
+  }
+ ]
+}

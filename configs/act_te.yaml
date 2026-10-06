@@ -1,0 +1,5 @@
+# ACT 时间集成（temporal_ensemble_coeff=0.01，n_action_steps=1，每步重新预测）
+model: act
+seeds: 0-9
+batch_size: 10
+mode: te

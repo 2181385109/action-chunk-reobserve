@@ -1,0 +1,29 @@
+{
+  "name": "dp_v4_k1",
+  "model": "dp",
+  "mode": "fixed",
+  "k": 1,
+  "batch_size": 10,
+  "seeds": "0..9 (n=10)",
+  "max_steps": 30,
+  "metrics": {
+    "n_episodes": 10,
+    "n_success": 0,
+    "success_rate": 0.0,
+    "success_ci95_wilson": [
+      0.0,
+      0.2775327998628892
+    ],
+    "mean_policy_calls": 30.0,
+    "mean_smoothness": 12.700841831354502,
+    "mean_steps": 30.0,
+    "mean_steps_success": NaN,
+    "mean_sum_reward": 1.8837294644275946,
+    "mean_max_reward": 0.09476334767712032,
+    "n_capped": 10,
+    "n_batches": 1,
+    "total_batch_wall_s": 55.75987293799699,
+    "wall_s_per_episode": 5.575987293799699
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}

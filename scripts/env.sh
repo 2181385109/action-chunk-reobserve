@@ -34,6 +34,10 @@ fi
 export PYTHONUNBUFFERED=1
 export PYTHONIOENCODING=utf-8
 export TOKENIZERS_PARALLELISM=false
+# torch 确定性算法需要（T2：DP 去噪在 GPU 上逐回合可复现）
+export CUBLAS_WORKSPACE_CONFIG="${CUBLAS_WORKSPACE_CONFIG:-:4096:8}"
+# 评估包 src/chunkre
+export PYTHONPATH="$CHUNK_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 
 if [ -f "$CHUNK_VENV/bin/activate" ]; then
   # shellcheck disable=SC1091

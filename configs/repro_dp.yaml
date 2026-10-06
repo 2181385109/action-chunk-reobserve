@@ -1,0 +1,6 @@
+# 官方数字复现：DP 默认 k=8，官方评估种子 1000-1499（500 回合）。batch_size 由 run_repro.sh 传入
+model: dp
+seeds: 1000-1499
+k: 8
+mode: fixed
+batch_size: 50

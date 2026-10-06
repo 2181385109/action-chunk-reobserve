@@ -1,0 +1,6 @@
+# ACT 默认推理设置（k=100，无时间集成），调试种子 0-9
+model: act
+seeds: 0-9
+batch_size: 10
+mode: fixed
+# k 不写 = 用 hub config 的默认 n_action_steps（100）

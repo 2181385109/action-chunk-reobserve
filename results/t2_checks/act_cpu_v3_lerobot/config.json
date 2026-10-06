@@ -1,0 +1,39 @@
+{
+  "what": "lerobot.scripts.eval.eval_policy，n_episodes=10，env batch=10，start_seed=0，调用前 set_seed(0)",
+  "policy": {
+    "repo": "lerobot/act_aloha_sim_transfer_cube_human",
+    "policy_class": "ACTPolicy",
+    "n_action_steps": 100,
+    "hub_default_n_action_steps": 100,
+    "n_obs_steps": 1,
+    "chunk_size": 100,
+    "horizon": null,
+    "temporal_ensemble_coeff": null,
+    "num_inference_steps": null,
+    "noise_scheduler_type": null,
+    "k_upper_bound": 100,
+    "use_amp": false,
+    "n_params_M": 51.61
+  },
+  "torch_flags": {
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "cudnn_allow_tf32": true,
+    "matmul_allow_tf32": true,
+    "use_deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "gl_renderer": "llvmpipe (LLVM 20.1.2, 256 bits)"
+}
