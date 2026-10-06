@@ -1,0 +1,26 @@
+{
+  "what": "lerobot 0.3.3 eval_main（lerobot-eval 同一入口），见 scripts/t3_diag.py q1_lerobot 的三处运行时替换",
+  "argv": [
+    "lerobot-eval",
+    "--policy.path=lerobot/act_aloha_sim_transfer_cube_human",
+    "--policy.n_action_steps=1",
+    "--policy.device=cuda",
+    "--env.type=aloha",
+    "--env.task=AlohaTransferCube-v0",
+    "--eval.batch_size=10",
+    "--eval.n_episodes=10",
+    "--seed=0",
+    "--output_dir=/mnt/d/xiangmu/chunk-reobserve/results/t3_k1_diag/q1_lerobot_cpu_k1_len100/lerobot_output",
+    "--env.episode_length=100"
+  ],
+  "gl_renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "torch_flags": {
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "cudnn_allow_tf32": true,
+    "matmul_allow_tf32": true,
+    "use_deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+  },
+  "actions_npz": "actions.npz：lerobot rollout 返回的 action (B, T, A)，回合结束后的步被 lerobot 用 0 填充"
+}

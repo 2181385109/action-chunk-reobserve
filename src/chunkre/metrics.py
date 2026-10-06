@@ -13,8 +13,13 @@ EPISODE_COLUMNS = [
     "success", "steps", "max_steps", "capped",
     "sum_reward", "max_reward", "n_policy_calls", "smoothness",
     "wall_s", "batch_wall_s", "batch_policy_s", "batch_env_s",
+    "path_length", "jerk", "reversal_rate",
 ]
 TIME_COLUMNS = ["wall_s", "batch_wall_s", "batch_policy_s", "batch_env_s"]
+# T3 新增的逐回合指标列（排在最后）。T2 写出的旧 CSV 没有这些列：续跑时沿用旧表头，汇总时跳过。
+MOTION_COLUMNS = ["path_length", "jerk", "reversal_rate"]
+# reversal_rate 的“静止”阈值（环境动作单位：关节为弧度，夹爪为归一化开合度 0..1）
+REVERSAL_EPS = 1e-5
 
 
 def action_smoothness(actions) -> float:
@@ -29,6 +34,60 @@ def action_smoothness(actions) -> float:
     if a.shape[0] < 2:
         return float("nan")
     return float(np.linalg.norm(np.diff(a, axis=0), axis=1).mean())
+
+
+def _as_2d(actions) -> np.ndarray:
+    a = np.asarray(actions, dtype=np.float64)
+    return a[:, None] if a.ndim == 1 else a
+
+
+def path_length(actions) -> float:
+    """路径长度 = 相邻两步动作差的 L2 范数的总和（手臂按动作目标“总共走了多远”）。
+
+    actions: (T, action_dim)，实际发给环境的动作（环境单位）。T < 2 时返回 0.0（没有移动）。
+    """
+    a = _as_2d(actions)
+    if a.shape[0] < 2:
+        return 0.0
+    return float(np.linalg.norm(np.diff(a, axis=0), axis=1).sum())
+
+
+def jerk(actions) -> float:
+    """jerk = 动作二阶差分的 L2 范数的平均值：mean_t ||a_t - 2 a_{t-1} + a_{t-2}||_2。
+
+    动作是关节目标位置，所以二阶差分其实是“目标加速度”；这里按 T3 提示词的定义叫 jerk。
+    匀速运动为 0，忽快忽慢或来回抖动时变大。T < 3 时返回 nan。
+    """
+    a = _as_2d(actions)
+    if a.shape[0] < 3:
+        return float("nan")
+    return float(np.linalg.norm(np.diff(a, n=2, axis=0), axis=1).mean())
+
+
+def reversal_rate(actions, eps: float = REVERSAL_EPS) -> float:
+    """方向反转率：各关节相邻两步运动方向相反的比例。
+
+    对每个关节 j 和每个 t，看相邻两步的变化量 d_{t-1,j} = a_{t,j} - a_{t-1,j} 和 d_{t,j}；
+    两者绝对值都 > eps（默认 REVERSAL_EPS = 1e-5，关节为弧度、夹爪为归一化开合度，约等于“没动”）
+    时这一对才计入分母，符号相反计为一次反转。返回 反转次数 / 计入的对数（所有关节合计）。
+    任一步变化量 <= eps 的对被忽略（静止 → 再起步不算反转）。没有任何计入的对（如完全不动、T < 3）时返回 nan。
+    匀速运动为 0；每步来回抖动为 1。
+    """
+    a = _as_2d(actions)
+    if a.shape[0] < 3:
+        return float("nan")
+    d = np.diff(a, axis=0)
+    prev, cur = d[:-1], d[1:]
+    valid = (np.abs(prev) > eps) & (np.abs(cur) > eps)
+    n = int(valid.sum())
+    if n == 0:
+        return float("nan")
+    return float((valid & (np.sign(prev) != np.sign(cur))).sum() / n)
+
+
+def motion_metrics(actions) -> dict:
+    """一回合的三个运动指标（写进 episodes.csv 的 MOTION_COLUMNS）。"""
+    return dict(path_length=path_length(actions), jerk=jerk(actions), reversal_rate=reversal_rate(actions))
 
 
 def wilson_ci(n_success: int, n: int, z: float = 1.959963984540054) -> tuple[float, float]:
@@ -68,6 +127,11 @@ def summarize_rows(rows: list[dict]) -> dict:
     for r in rows:
         batch_wall[int(_f(r["batch_idx"]))] = _f(r["batch_wall_s"])
     total_wall = float(sum(batch_wall.values())) if batch_wall else float("nan")
+    # T3 运动指标：只有所有行都有该列时才汇总（T2 旧 CSV 没有 → 汇总里不出现这些键，与旧 summary.json 完全一致）
+    motion = {}
+    for c in MOTION_COLUMNS:
+        if n and all(c in r for r in rows):
+            motion[f"mean_{c}"] = mean(np.array([_f(r[c]) for r in rows]))
     return {
         "n_episodes": n,
         "n_success": n_success,
@@ -83,7 +147,17 @@ def summarize_rows(rows: list[dict]) -> dict:
         "n_batches": len(batch_wall),
         "total_batch_wall_s": total_wall,
         "wall_s_per_episode": total_wall / n if n else float("nan"),
+        **motion,
     }
+
+
+def csv_columns(csv_path: Path) -> list[str] | None:
+    """已有 CSV 的表头（文件不存在或为空时 None）。续跑旧格式 CSV 时沿用它。"""
+    if not Path(csv_path).exists():
+        return None
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        header = next(csv.reader(f), None)
+    return header or None
 
 
 def read_episodes(csv_path: Path) -> list[dict]:

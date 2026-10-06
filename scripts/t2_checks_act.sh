@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # T2 ACT 补充检查（发现 D3D12 GPU 渲染不逐字节可复现之后）：
 #  1) GPU 渲染（研究默认）：V4（k=1、10、te；k=100 用 act_v1_run1）——调用次数检查不依赖逐位可复现；
 #  2) CPU 渲染 llvmpipe（逐字节可复现）：V1 两次、V2、V3 四个进程并行，用来检验评估脚本本身。

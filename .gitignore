@@ -9,6 +9,8 @@ outputs/
 *.mp4
 *.avi
 *.gif
+# 例外：评估脚本 --save-frames 导出的小 GIF（每个 <= 2 MB）
+!results/**/frames/*.gif
 *.pt
 *.pth
 *.safetensors

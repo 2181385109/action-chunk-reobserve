@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # 对比 egl / osmesa 渲染耗时，并测 DP 一次动作块预测耗时。结果粘贴进 docs/ENVIRONMENT.md。
 source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
 for gl in egl osmesa; do

@@ -3,6 +3,7 @@
 用法：
   python scripts/summarize.py results/<实验名>            # 打印重算结果，并与 summary.json 比对
   python scripts/summarize.py results/<实验名> --write    # 用重算结果覆盖 summary.json 的 metrics
+T2 写出的旧格式 CSV（没有 path_length / jerk / reversal_rate 列）照常汇总，只是不含这几项。
 不需要 GPU / 仿真，Windows 或 WSL 里有 numpy + pyyaml 即可。
 """
 from __future__ import annotations
@@ -16,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from chunkre.metrics import summarize_csv  # noqa: E402
+from chunkre.metrics import MOTION_COLUMNS, csv_columns, summarize_csv  # noqa: E402
 
 
 def same(a, b) -> bool:
@@ -30,6 +31,9 @@ def same(a, b) -> bool:
 def check(run_dir: Path, write: bool = False) -> bool:
     run_dir = Path(run_dir)
     m = summarize_csv(run_dir / "episodes.csv")
+    missing = [c for c in MOTION_COLUMNS if c not in (csv_columns(run_dir / "episodes.csv") or [])]
+    if missing:
+        print(f"[summarize] {run_dir}: T3 之前的旧格式 CSV，没有 {missing} 列，汇总里不含这些指标")
     sp = run_dir / "summary.json"
     ok = True
     if sp.exists():

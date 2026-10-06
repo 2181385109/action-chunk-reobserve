@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # V5 耗时基准（约 3–4 分钟）。必须单独跑（不要与其他评估并行，否则耗时不准）。
 # 用法：bash scripts/bench_timing.sh   [BS=1,10,25,50]
 source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh

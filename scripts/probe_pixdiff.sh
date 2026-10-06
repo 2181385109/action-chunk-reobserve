@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # 量化 D3D12 渲染不确定性：三个独立进程各渲染同一组画面，逐像素比较。约 1 分钟。
 source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
 T=$(mktemp -d)

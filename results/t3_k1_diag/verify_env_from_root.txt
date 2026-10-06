@@ -1,0 +1,4 @@
+/root
+lerobot 0.3.3 | torch 2.7.1+cu126 | cuda_available True | gpu NVIDIA GeForce RTX 4060 Laptop GPU
+MUJOCO_GL=egl CHUNK_RENDER=gpu GALLIUM_DRIVER=d3d12 HF_ENDPOINT=https://huggingface.co
+exit=0

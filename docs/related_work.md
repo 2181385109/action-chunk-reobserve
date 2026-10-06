@@ -26,3 +26,20 @@ BID 指出动作分块一方面更好地捕捉演示中的时间依赖，另一�
 
 **Real-Time Chunking（Black 等，2025）**
 RTC 面向流匹配/扩散类动作分块策略的异步实时执行：在当前块执行期间就开始生成下一块，通过“修补”（inpainting）式的约束保证块边界处动作连续。它处理的是“推理有延迟时，块与块如何衔接”，与本项目的“动作延迟扰动”和“块边界平滑度”相关；但它是新推理算法，本项目不实现它，只在讨论部分把它作为相关工作引用。
+
+## T3 补充（2026-10-07）：“一次预测多步、每步只执行第一个动作（不做时间集成）”是否被报告过效果差
+
+核实方式：2026-10-07 打开 arXiv HTML 全文（ACT：arxiv.org/html/2304.13705；BID：arxiv.org/html/2408.17355，页面显示为 **v4**，标题 “Bidirectional Decoding: Improving Action Chunking via Guided Test-Time Sampling”），用网页抽取工具按节号逐条摘录原句。下面每条都注明位置；摘录工具可能漏看图里的数字，写论文前应再对 PDF 核一次。
+
+**ACT（2304.13705）**
+- 我们这种设置（预测 100 步、每步只执行第 1 个、不做时间集成）：**未找到**。论文没有单独评估这一设置，也没有提到“只执行第一个动作”或 receding horizon。
+- 相关但**不是同一设置**：§VI-A “Action Chunking and Temporal Ensembling” 的块长消融（Fig. 7a）里 “k=1 corresponds to no action chunking”，且是**为每个 k 单独训练的策略**、关掉时间集成；平均成功率从 k=1 的 1% 升到 k=100 的 44%。那里的 k 是**预测**长度（只预测 1 步），而我们的 k 是**执行**长度（预测仍是 100 步），所以不能直接拿来解释我们的 k=1。
+- §IV-A “Action Chunking and Temporal Ensemble”：分块能帮助建模人类演示里的非马尔可夫行为——单步策略难以处理“演示中途停顿”这类与时间相关的混杂因素（原文：a single-step policy would struggle with temporally correlated confounders, such as pauses in the middle of a demonstration）。同节说朴素分块每 k 步突然纳入新观测，可能导致动作不连贯（jerky），时间集成就是为此在每步查询策略并加权平均。
+- Fig. 7b：时间集成给 ACT 带来约 3.3% 的提升（对比的是“有/无时间集成”，无时间集成时执行方式原文未单独说明）。
+- 论文**没有**讨论策略停滞、不动的现象（未找到）。
+
+**BID（2408.17355 v4）**
+- §5.2.1 把 “Vanilla” 闭环基线定义为 “Execute the first action of a sampled chunk in a closed-loop manner”（引 Chi 等 2023），即每步重新采样、只执行第一个动作——与我们 k=1 的执行方式相同（但策略不同，见下）。
+- **Table 1**（VQ-BeT，Push-T，不同随机噪声）：无噪声（0.0）时 Vanilla 开环 64.0%，Vanilla 闭环 **48.9%**；噪声 1.0 / 1.5 时闭环反而更好（38.3 vs 26.9、29.5 vs 13.0）。即：在无扰动环境里，每步只执行第一个动作比开环执行整块差。
+- **Fig. 1(b)** 图注：receding horizon 反应更快，但在演示多模态时（例：左撇子与右撇子）导致轨迹抖动（jittery）。§3.2 的 Proposition 1 与 Corollary 2/3 给出解释框架：执行更长的块隐式地以更多过去动作为条件，在确定性环境中更“一致”；只有当环境随机、难以从过去推断当前状态时，短执行长度的“反应性”优势才占上风。
+- 注意：BID 的实验对象是 VQ-BeT / Diffusion Policy 等**随机采样**策略；“来回切换模式”的解释依赖于每次采样可能落在不同模式。ACT 推理时潜变量取 0（LeRobot 0.3.3 `modeling_act.py` 第 470–472 行），输出是确定性的，BID 的“模式切换”解释是否适用于 ACT，原文**未讨论**（未找到）。

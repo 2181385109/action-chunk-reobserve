@@ -63,6 +63,7 @@ def _fake_rows(n=20, B=10, seed=0):
             sum_reward=float(rng.random() * 100), max_reward=float(rng.integers(0, 5)),
             n_policy_calls=int(rng.integers(10, 41)), smoothness=float(rng.random() / 3),
             wall_s=float(rng.random() * 50), batch_wall_s=40.0 + b, batch_policy_s=3.0, batch_env_s=30.0,
+            path_length=float(rng.random() * 5), jerk=float(rng.random() / 10), reversal_rate=float(rng.random()),
         ))
     return rows
 

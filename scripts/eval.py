@@ -38,9 +38,14 @@ def main(argv=None):
     ap.add_argument("--device")
     ap.add_argument("--allow-cpu-render", action="store_true", default=None, dest="allow_cpu_render")
     ap.add_argument("--no-deterministic", action="store_false", default=None, dest="deterministic")
+    ap.add_argument("--log-traj", action="store_true", default=None, dest="log_traj",
+                    help="逐步轨迹 -> <out>/traj/batch_*.npz（不影响结果）")
+    ap.add_argument("--save-frames", dest="save_frames", help="这些种子导出画面 PNG + GIF -> <out>/frames/，如 0 或 0,3")
+    ap.add_argument("--frame-every", type=int, dest="frame_every", help="每隔几步存一张 PNG（默认 10）")
     a = ap.parse_args(argv)
     overrides = {k: getattr(a, k) for k in ["model", "k", "mode", "seeds", "batch_size", "max_steps", "name",
-                                             "device", "allow_cpu_render", "deterministic"]}
+                                             "device", "allow_cpu_render", "deterministic", "log_traj",
+                                             "save_frames", "frame_every"]}
     cfg = load_config(a.config, overrides)
     if not cfg.name:
         cfg.name = Path(a.out).name

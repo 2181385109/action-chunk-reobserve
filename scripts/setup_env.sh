@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # 可重复运行的环境安装脚本（在 WSL 内、root 下运行）。
 # 用法：bash scripts/setup_env.sh            # 使用下面固定的版本
 #       LEROBOT_VERSION=0.4.4 bash scripts/setup_env.sh   # 试别的版本（会装到同一个 venv）

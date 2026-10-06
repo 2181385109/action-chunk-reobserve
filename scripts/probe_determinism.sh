@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # T2 排查 ACT 不确定性：渲染画面 / 策略推理 是否跨进程逐字节可复现。结果写 results/t2_checks/probe_determinism.jsonl
 source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
 OUT=results/t2_checks/probe_determinism.jsonl

@@ -82,6 +82,10 @@ class EvalConfig:
     deterministic: bool = True      # torch 确定性开关（见 runner.set_determinism）
     name: str = ""
     extra: dict = field(default_factory=dict)
+    # T3：只记录、不影响结果（不进续跑配置指纹，见 runner.NON_RESULT_FIELDS）
+    log_traj: bool = False          # 逐步轨迹 -> <out>/traj/batch_*.npz（chunkre.traj）
+    save_frames: list[int] = field(default_factory=list)   # 这些种子导出画面 -> <out>/frames/
+    frame_every: int = 10           # 每隔几步存一张 PNG
 
     def __post_init__(self):
         if self.model not in MODELS:
@@ -95,6 +99,9 @@ class EvalConfig:
             raise ValueError(f"种子数 {len(self.seeds)} 必须是 batch_size={self.batch_size} 的正整数倍")
         if len(set(self.seeds)) != len(self.seeds):
             raise ValueError("种子列表有重复")
+        self.save_frames = parse_seeds(self.save_frames) if self.save_frames not in (None, "") else []
+        if int(self.frame_every) < 1:
+            raise ValueError("frame_every 必须 >= 1")
 
     @property
     def k_effective(self) -> int:

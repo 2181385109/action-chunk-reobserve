@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # T2 正确性检查 V1–V4。V5 耗时基准另见 scripts/bench_timing.sh（必须单独跑）。
 # 用法：bash scripts/t2_checks.sh                  （默认 ACT、DP 依次串行；先删掉该模型旧的 results/t2_checks/<model>_*）
 #       MODELS=act bash scripts/t2_checks.sh       （只重跑 ACT）

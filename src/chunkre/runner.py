@@ -28,8 +28,9 @@ import numpy as np
 import torch
 
 from .config import MODELS, TE_COEFF, EvalConfig, validate_k
-from .metrics import EPISODE_COLUMNS, summarize_csv
+from .metrics import EPISODE_COLUMNS, csv_columns, motion_metrics, summarize_csv
 from .seed_guard import check_seeds
+from .traj import TrajRecorder
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -134,16 +135,22 @@ class CallCounter:
 
     ACT 与 DP 的 select_action 都在动作队列空了（或时间集成时每一步）时调用 self.predict_action_chunk，
     所以每调用一次 = 策略实际重新预测了一个动作块（对批里所有环境同时）。
+    keep_last=True 时（轨迹记录用）把最近一次预测的完整动作块复制一份到 CPU（self.last，numpy），只读不改。
     """
 
     def __init__(self, policy):
         self.n = 0
         self.t = 0.0
+        self.keep_last = False
+        self.last = None
         self._orig = policy.predict_action_chunk
 
         def wrapped(*args, **kwargs):
             self.n += 1
-            return self._orig(*args, **kwargs)
+            out = self._orig(*args, **kwargs)
+            if self.keep_last:
+                self.last = out.detach().to("cpu", copy=True).float().numpy()
+            return out
 
         policy.predict_action_chunk = wrapped
         self._policy = policy
@@ -179,7 +186,8 @@ def check_renderer(model: str, renderer: str, allow_cpu_render: bool) -> None:
 # 一批回合
 # ----------------------------------------------------------------------------------------------
 def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
-              max_steps: int | None = None, after_reset=None) -> tuple[list[dict], dict]:
+              max_steps: int | None = None, after_reset=None,
+              recorder: TrajRecorder | None = None) -> tuple[list[dict], dict]:
     """用 len(seeds) 个环境同时跑一批回合。返回 (逐回合统计列表, 批统计)。
 
     逐回合统计：
@@ -189,7 +197,9 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
       sum_reward / max_reward  该回合各步奖励的和 / 最大值（只算到结束那一步）
       n_policy_calls  该环境存活期间策略重新预测动作块的次数
       smoothness   相邻两步动作差的 L2 范数的平均值（见 metrics.action_smoothness）
+      path_length / jerk / reversal_rate  T3 运动指标（见 metrics.path_length / jerk / reversal_rate）
       wall_s       从这批 reset 完成到该回合结束的墙钟秒数（同批环境并行，所以各回合有重叠）
+    recorder：轨迹记录 / 画面导出（chunkre.traj），只读观测、动作和物理状态，不影响结果。
     """
     from lerobot.envs.utils import add_envs_task, preprocess_observation
 
@@ -213,6 +223,9 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
     diff_n = np.zeros(B, dtype=np.int64)
     ep_wall = np.zeros(B, dtype=np.float64)
     prev_action = None
+    ep_actions = [[] for _ in range(B)]   # 各环境存活期间实际执行的动作（算运动指标）
+    rec = recorder if (recorder is not None and recorder.active) else None
+    counter.keep_last = bool(rec is not None and rec.log_traj)
     t_pol = t_env = 0.0
     is_cuda = torch.device(device).type == "cuda"
 
@@ -240,6 +253,11 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
             diff_sum[alive] += d[alive]
             diff_n[alive] += 1
         prev_action = action.astype(np.float64)
+        for i in np.flatnonzero(alive):
+            ep_actions[i].append(action[i])
+        if rec is not None:
+            repred = counter.n > n0
+            rec.record(step, obs, env, action, alive, repred, counter.last if repred else None)
 
         ta = time.perf_counter()
         obs, reward, terminated, truncated, info = env.step(action)
@@ -265,13 +283,18 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
     capped = ~done
     ep_wall[capped] = batch_wall
     smooth = np.where(diff_n > 0, diff_sum / np.maximum(diff_n, 1), np.nan)
+    if rec is not None:
+        rec.finish(steps)
+    counter.keep_last = False
     eps = []
     for i in range(B):
+        acts = np.asarray(ep_actions[i], dtype=np.float64).reshape(len(ep_actions[i]), -1)
         eps.append(dict(
             env_idx=i, seed=int(seeds[i]), success=int(success[i]), steps=int(steps[i]),
             max_steps=T_env, capped=int(capped[i]),
             sum_reward=float(sum_r[i]), max_reward=float(max_r[i]),
             n_policy_calls=int(calls[i]), smoothness=float(smooth[i]), wall_s=float(ep_wall[i]),
+            **motion_metrics(acts),
         ))
     batch = dict(batch_wall_s=batch_wall, batch_policy_s=t_pol, batch_env_s=t_env, n_loop_steps=step)
     return eps, batch
@@ -300,9 +323,10 @@ def _git_commit() -> str | None:
 
 
 def _read_done_batches(csv_path: Path, cfg: EvalConfig) -> set[int]:
-    """读已有 CSV，返回已完整写入的批次号；不完整的批次行会被删掉（重写 CSV）。"""
+    """读已有 CSV，返回已完整写入的批次号；不完整的批次行会被删掉（重写 CSV，保持原表头）。"""
     if not csv_path.exists():
         return set()
+    header = csv_columns(csv_path)
     with open(csv_path, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     batches = cfg.batches()
@@ -317,15 +341,20 @@ def _read_done_batches(csv_path: Path, cfg: EvalConfig) -> set[int]:
     if len(keep) != len(rows):
         print(f"[resume] 删除 {len(rows) - len(keep)} 行不完整批次的结果", flush=True)
         with open(csv_path, "w", newline="", encoding="utf-8") as f:
-            w = csv.DictWriter(f, fieldnames=EPISODE_COLUMNS)
+            w = csv.DictWriter(f, fieldnames=header or EPISODE_COLUMNS)
             w.writeheader()
             w.writerows(keep)
     return ok
 
 
+# 只影响“额外记录什么”、不影响结果的字段：不进配置指纹（T2 写出的旧 config.json 也没有它们，照样能续跑）
+NON_RESULT_FIELDS = ("name", "log_traj", "save_frames", "frame_every")
+
+
 def _fingerprint(cfg: EvalConfig) -> dict:
     d = cfg.to_dict()
-    d.pop("name", None)
+    for key in NON_RESULT_FIELDS:
+        d.pop(key, None)
     return d
 
 
@@ -354,6 +383,12 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
     policy, pinfo = policy_and_info
     counter = CallCounter(policy)
 
+    # 续跑 T2 写出的旧格式 CSV（没有 T3 运动指标列）时沿用旧表头，新批次也按旧表头写（运动指标不写）
+    columns = csv_columns(csv_path) or EPISODE_COLUMNS
+    unknown = set(columns) - set(EPISODE_COLUMNS)
+    if unknown:
+        raise RuntimeError(f"{csv_path} 的表头有未知列 {sorted(unknown)}，拒绝续跑。")
+
     batches = cfg.batches()
     todo = [b for b in range(len(batches)) if b not in done_batches]
     log(f"[{cfg.name or cfg.model}] model={cfg.model} mode={cfg.mode} k={cfg.k_effective} B={cfg.batch_size} "
@@ -375,7 +410,8 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
         runs.append(dict(runtime, gl_renderer=renderer.get("gl")))
         conf = dict(eval_config_fingerprint=_fingerprint(cfg), name=cfg.name, policy=pinfo,
                     gl_renderer=prev.get("gl_renderer") or renderer.get("gl"), runs=runs,
-                    columns=EPISODE_COLUMNS)
+                    columns=columns,
+                    logging=dict(log_traj=cfg.log_traj, save_frames=cfg.save_frames, frame_every=cfg.frame_every))
         if prev.get("gl_renderer") and renderer.get("gl") and prev["gl_renderer"] != renderer["gl"]:
             raise RuntimeError(f"续跑时渲染器变了：{prev['gl_renderer']} -> {renderer['gl']}")
         cfg_path.write_text(json.dumps(conf, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -393,12 +429,14 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
         t_start = time.perf_counter()
         try:
             with open(csv_path, "a", newline="", encoding="utf-8") as f:
-                w = csv.DictWriter(f, fieldnames=EPISODE_COLUMNS)
+                w = csv.DictWriter(f, fieldnames=columns, extrasaction="ignore")
                 if new_file:
                     w.writeheader()
                 for j, b in enumerate(todo):
+                    rec = TrajRecorder(out_dir, b, batches[b], cfg.log_traj, cfg.save_frames, cfg.frame_every,
+                                       te=cfg.mode == "te")
                     eps, bstat = run_batch(env, policy, counter, batches[b], cfg.device, cfg.max_steps,
-                                           after_reset=after_reset)
+                                           after_reset=after_reset, recorder=rec)
                     for e in eps:
                         w.writerow(dict(e, batch_idx=b, model=cfg.model, mode=cfg.mode, k=cfg.k_effective,
                                         batch_wall_s=bstat["batch_wall_s"],

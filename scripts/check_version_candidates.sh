@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # 版本选择依据：给每个候选版本建独立临时 venv（完整依赖，lerobot 基础包，不含仿真 extras），
 # 看两个 hub 模型能否用官方 API（Policy.from_pretrained）直接加载。结果记录在 docs/ENVIRONMENT.md。
 # 用法：bash scripts/check_version_candidates.sh 0.4.4 0.6.1
