@@ -29,6 +29,7 @@ import torch
 
 from .config import MODELS, TE_COEFF, EvalConfig, validate_k
 from .metrics import EPISODE_COLUMNS, csv_columns, motion_metrics, summarize_csv
+from .perturb import Perturbation, make_perturbation
 from .seed_guard import check_seeds
 from .traj import TrajRecorder
 
@@ -187,7 +188,8 @@ def check_renderer(model: str, renderer: str, allow_cpu_render: bool) -> None:
 # ----------------------------------------------------------------------------------------------
 def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
               max_steps: int | None = None, after_reset=None,
-              recorder: TrajRecorder | None = None) -> tuple[list[dict], dict]:
+              recorder: TrajRecorder | None = None,
+              perturb: Perturbation | None = None) -> tuple[list[dict], dict]:
     """用 len(seeds) 个环境同时跑一批回合。返回 (逐回合统计列表, 批统计)。
 
     逐回合统计：
@@ -200,6 +202,8 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
       path_length / jerk / reversal_rate  T3 运动指标（见 metrics.path_length / jerk / reversal_rate）
       wall_s       从这批 reset 完成到该回合结束的墙钟秒数（同批环境并行，所以各回合有重叠）
     recorder：轨迹记录 / 画面导出（chunkre.traj），只读观测、动作和物理状态，不影响结果。
+    perturb：扰动（chunkre.perturb）。第 t 步顺序：obs -> on_obs -> 策略 -> on_action -> 记录 -> on_state -> env.step。
+      None 或 kind=none 时三个钩子都是原样返回。逐回合扰动记录合并进返回的逐回合统计（PERTURB_COLUMNS）。
     """
     from lerobot.envs.utils import add_envs_task, preprocess_observation
 
@@ -208,6 +212,8 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
     set_global_seed(seeds[0])
     policy.reset()
     obs, _ = env.reset(seed=list(seeds))
+    pert = perturb if perturb is not None else Perturbation()
+    pert.begin_batch(env, seeds)       # 只用每回合独立的随机数，不碰全局随机状态
     if after_reset is not None:
         after_reset(env)
     T_env = int(env.call("_max_episode_steps")[0])
@@ -232,6 +238,8 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
     t0 = time.perf_counter()
     step = 0
     while not done.all() and step < limit:
+        alive = ~done
+        obs = pert.on_obs(step, obs, alive)
         o = preprocess_observation(obs)
         o = {key: o[key].to(device, non_blocking=is_cuda) for key in o}
         o = add_envs_task(env, o)
@@ -244,8 +252,7 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
         action = action.to("cpu").numpy()
         t_pol += time.perf_counter() - ta
         assert action.ndim == 2, "动作应为 (batch, action_dim)"
-
-        alive = ~done
+        action = pert.on_action(step, action, alive)
         if counter.n > n0:
             calls[alive] += counter.n - n0
         if prev_action is not None:
@@ -258,6 +265,9 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
         if rec is not None:
             repred = counter.n > n0
             rec.record(step, obs, env, action, alive, repred, counter.last if repred else None)
+        pert.on_state(step, env, alive)
+        if rec is not None and pert.touches_state:
+            rec.record_after_state(env)
 
         ta = time.perf_counter()
         obs, reward, terminated, truncated, info = env.step(action)
@@ -283,6 +293,7 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
     capped = ~done
     ep_wall[capped] = batch_wall
     smooth = np.where(diff_n > 0, diff_sum / np.maximum(diff_n, 1), np.nan)
+    pert.end_batch(steps)
     if rec is not None:
         rec.finish(steps)
     counter.keep_last = False
@@ -294,7 +305,7 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
             max_steps=T_env, capped=int(capped[i]),
             sum_reward=float(sum_r[i]), max_reward=float(max_r[i]),
             n_policy_calls=int(calls[i]), smoothness=float(smooth[i]), wall_s=float(ep_wall[i]),
-            **motion_metrics(acts),
+            **motion_metrics(acts), **pert.episode_info(i),
         ))
     batch = dict(batch_wall_s=batch_wall, batch_policy_s=t_pol, batch_env_s=t_env, n_loop_steps=step)
     return eps, batch
@@ -355,6 +366,8 @@ def _fingerprint(cfg: EvalConfig) -> dict:
     d = cfg.to_dict()
     for key in NON_RESULT_FIELDS:
         d.pop(key, None)
+    if not cfg.perturb_active:      # 无扰动：指纹与 T2/T3 写出的旧 config.json 相同
+        d.pop("perturb", None)
     return d
 
 
@@ -382,6 +395,7 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
         policy_and_info = build_policy(cfg)
     policy, pinfo = policy_and_info
     counter = CallCounter(policy)
+    perturb = make_perturbation(cfg.perturb, cfg.model)
 
     # 续跑 T2 写出的旧格式 CSV（没有 T3 运动指标列）时沿用旧表头，新批次也按旧表头写（运动指标不写）
     columns = csv_columns(csv_path) or EPISODE_COLUMNS
@@ -392,7 +406,9 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
     batches = cfg.batches()
     todo = [b for b in range(len(batches)) if b not in done_batches]
     log(f"[{cfg.name or cfg.model}] model={cfg.model} mode={cfg.mode} k={cfg.k_effective} B={cfg.batch_size} "
-        f"批次 {len(batches)}，已完成 {len(done_batches)}，待跑 {len(todo)}")
+        f"扰动={perturb.kind}:{perturb.strength:g} 批次 {len(batches)}，已完成 {len(done_batches)}，待跑 {len(todo)}")
+    if cfg.perturb_active and not set(c for c in columns if c.startswith("perturb_")):
+        raise RuntimeError(f"{csv_path} 是旧格式（没有扰动列），不能写扰动结果。")
 
     renderer = {}
     runtime = dict(
@@ -410,7 +426,7 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
         runs.append(dict(runtime, gl_renderer=renderer.get("gl")))
         conf = dict(eval_config_fingerprint=_fingerprint(cfg), name=cfg.name, policy=pinfo,
                     gl_renderer=prev.get("gl_renderer") or renderer.get("gl"), runs=runs,
-                    columns=columns,
+                    columns=columns, perturbation=perturb.describe(),
                     logging=dict(log_traj=cfg.log_traj, save_frames=cfg.save_frames, frame_every=cfg.frame_every))
         if prev.get("gl_renderer") and renderer.get("gl") and prev["gl_renderer"] != renderer["gl"]:
             raise RuntimeError(f"续跑时渲染器变了：{prev['gl_renderer']} -> {renderer['gl']}")
@@ -436,7 +452,7 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
                     rec = TrajRecorder(out_dir, b, batches[b], cfg.log_traj, cfg.save_frames, cfg.frame_every,
                                        te=cfg.mode == "te")
                     eps, bstat = run_batch(env, policy, counter, batches[b], cfg.device, cfg.max_steps,
-                                           after_reset=after_reset, recorder=rec)
+                                           after_reset=after_reset, recorder=rec, perturb=perturb)
                     for e in eps:
                         w.writerow(dict(e, batch_idx=b, model=cfg.model, mode=cfg.mode, k=cfg.k_effective,
                                         batch_wall_s=bstat["batch_wall_s"],

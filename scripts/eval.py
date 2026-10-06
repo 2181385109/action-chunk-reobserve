@@ -4,6 +4,7 @@
   python scripts/eval.py --config configs/act_default.yaml --out results/<实验名>
   python scripts/eval.py --config configs/act_default.yaml --out results/x --k 10 --seeds 0-9 --batch-size 10
   python scripts/eval.py --config configs/act_te.yaml --out results/x
+  python scripts/eval.py --config configs/act_push.yaml --out results/x --perturb-strength 0.10   # T4 推方块
 
 命令行参数覆盖 YAML 里的同名字段。输出（CLAUDE.md §6）：
   <out>/config.json   配置 + 策略实际参数 + 实际 GL_RENDERER + 版本
@@ -21,7 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from chunkre.config import load_config  # noqa: E402
+from chunkre.config import load_config, parse_param_kv  # noqa: E402
+from chunkre.perturb import KINDS  # noqa: E402
 
 
 def main(argv=None):
@@ -42,10 +44,17 @@ def main(argv=None):
                     help="逐步轨迹 -> <out>/traj/batch_*.npz（不影响结果）")
     ap.add_argument("--save-frames", dest="save_frames", help="这些种子导出画面 PNG + GIF -> <out>/frames/，如 0 或 0,3")
     ap.add_argument("--frame-every", type=int, dest="frame_every", help="每隔几步存一张 PNG（默认 10）")
+    ap.add_argument("--perturb", dest="perturb_kind", choices=list(KINDS),
+                    help="扰动类型（T4：push；obs_noise / action_delay 留给 T5）。覆盖 YAML 的 perturb.kind")
+    ap.add_argument("--perturb-strength", type=float, dest="perturb_strength",
+                    help="扰动强度（push：推开距离 d，米）")
+    ap.add_argument("--perturb-param", action="append", dest="perturb_params", metavar="KEY=VALUE",
+                    help="扰动参数，可重复，如 --perturb-param t_lo=20 --perturb-param t_hi=100")
     a = ap.parse_args(argv)
     overrides = {k: getattr(a, k) for k in ["model", "k", "mode", "seeds", "batch_size", "max_steps", "name",
                                              "device", "allow_cpu_render", "deterministic", "log_traj",
-                                             "save_frames", "frame_every"]}
+                                             "save_frames", "frame_every", "perturb_kind", "perturb_strength"]}
+    overrides["perturb_params"] = parse_param_kv(a.perturb_params)
     cfg = load_config(a.config, overrides)
     if not cfg.name:
         cfg.name = Path(a.out).name

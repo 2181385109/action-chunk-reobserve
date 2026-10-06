@@ -1,0 +1,42 @@
+{
+  "name": "p3_k100_dmax",
+  "model": "act",
+  "mode": "fixed",
+  "k": 100,
+  "batch_size": 10,
+  "seeds": "0..19 (n=20)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 20,
+    "n_success": 0,
+    "success_rate": 0.0,
+    "success_ci95_wilson": [
+      0.0,
+      0.16112515805281938
+    ],
+    "mean_policy_calls": 4.0,
+    "mean_smoothness": 0.02332820908146075,
+    "mean_steps": 400.0,
+    "mean_steps_success": NaN,
+    "mean_sum_reward": 30.95,
+    "mean_max_reward": 0.5,
+    "n_capped": 0,
+    "n_batches": 2,
+    "total_batch_wall_s": 395.08938054999453,
+    "wall_s_per_episode": 19.754469027499727,
+    "mean_path_length": 9.30795542350284,
+    "mean_jerk": 0.02332143239462747,
+    "mean_reversal_rate": 0.40734937454762854,
+    "perturb_kind": "push",
+    "perturb_strength": 0.1,
+    "push_status_counts": {
+      "pushed": 20,
+      "zero": 0,
+      "skipped_lifted": 0,
+      "not_reached": 0
+    },
+    "n_push_clipped": 0,
+    "mean_push_d_actual": 0.10000000000000002
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}

@@ -14,6 +14,8 @@
   chunk_sel (T, B, J, A) float32     重新预测那一步，新动作块在 chunk_offsets 位置上的动作；其他步为 nan
                                      （动作块 = predict_action_chunk 的输出：ACT 为完整 100 步；DP 为将要执行的 k 步）
   cube_pos (T, B, 3) float32         只有 aloha：第 t 步（执行动作前）方块的位置 xyz（米），读自 physics.data.qpos[16:19]
+  cube_pos_after (T, B, 3) float32   只有 aloha 且开了改仿真状态的扰动（T4 push）：第 t 步 on_state 钩子之后、
+                                     env.step 之前的方块位置。推的那一步 cube_pos_after - cube_pos = 实际推的位移，其他步两者相同。
 注意：记录的是“执行第 t 步动作之前”的状态，与该步动作配对；回合结束那一步之后的状态不记录
 （gymnasium 0.29 同一步自动 reset，结束后读到的是新回合的状态）。
 
@@ -99,6 +101,14 @@ class TrajRecorder:
             self._offs = offs
         self.rows.append(row)
 
+    def record_after_state(self, env):
+        """扰动的 on_state 钩子之后调用：给刚记录的这一步补上方块位置（只读）。"""
+        if not self.log_traj or not self.rows:
+            return
+        cp = cube_positions(env)
+        if cp is not None:
+            self.rows[-1]["cube_pos_after"] = cp.astype(np.float32)
+
     def _save_png(self, img, seed, t, i):
         from PIL import Image
 
@@ -136,6 +146,8 @@ class TrajRecorder:
             out["agent_pos"] = stack("agent_pos", (self.rows[0]["agent_pos"].shape[1],))
         if "cube_pos" in self.rows[0]:
             out["cube_pos"] = stack("cube_pos", (3,))
+        if "cube_pos_after" in self.rows[0]:
+            out["cube_pos_after"] = stack("cube_pos_after", (3,))
         if hasattr(self, "_offs"):
             out["chunk_offsets"] = np.array(self._offs, dtype=np.int16)
             out["chunk_sel"] = stack("chunk_sel", (len(self._offs), A))

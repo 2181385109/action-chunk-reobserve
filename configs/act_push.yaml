@@ -1,0 +1,11 @@
+# T4：ACT（k=100，无时间集成）+ 回合中途推方块。强度 d（米）用 --perturb-strength 覆盖；档位第 4 天定（建议见 HANDOFF.md）
+model: act
+seeds: 0-9
+batch_size: 10
+mode: fixed
+perturb:
+  kind: push
+  strength: 0.10
+  params:
+    t_lo: 20      # 推的时刻 ~ 均匀整数 [t_lo, t_hi]（依据：T3 k=100 首次夹爪闭合最早 120 步、10% 分位 123.9 步）
+    t_hi: 100

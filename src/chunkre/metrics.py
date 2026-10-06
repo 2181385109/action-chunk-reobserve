@@ -7,6 +7,8 @@ from pathlib import Path
 
 import numpy as np
 
+from .perturb import PERTURB_COLUMNS, PUSH_STATUS
+
 # 逐回合 CSV 的列（顺序固定）。TIME_COLUMNS 是墙钟类列，复现性比较时排除。
 EPISODE_COLUMNS = [
     "batch_idx", "env_idx", "seed", "model", "mode", "k",
@@ -14,6 +16,7 @@ EPISODE_COLUMNS = [
     "sum_reward", "max_reward", "n_policy_calls", "smoothness",
     "wall_s", "batch_wall_s", "batch_policy_s", "batch_env_s",
     "path_length", "jerk", "reversal_rate",
+    *PERTURB_COLUMNS,     # T4 扰动列（chunkre.perturb.PERTURB_COLUMNS），排在最后
 ]
 TIME_COLUMNS = ["wall_s", "batch_wall_s", "batch_policy_s", "batch_env_s"]
 # T3 新增的逐回合指标列（排在最后）。T2 写出的旧 CSV 没有这些列：续跑时沿用旧表头，汇总时跳过。
@@ -132,6 +135,20 @@ def summarize_rows(rows: list[dict]) -> dict:
     for c in MOTION_COLUMNS:
         if n and all(c in r for r in rows):
             motion[f"mean_{c}"] = mean(np.array([_f(r[c]) for r in rows]))
+    # T4 扰动：只有 CSV 有扰动列且确实开了扰动时才汇总（无扰动 / 旧 CSV 的 summary 键不变）
+    pert = {}
+    if n and all("perturb_kind" in r for r in rows):
+        kinds = sorted({r["perturb_kind"] for r in rows} - {"", "none"})
+        if kinds:
+            pert["perturb_kind"] = kinds[0] if len(kinds) == 1 else kinds
+            strengths = sorted({_f(r["perturb_strength"]) for r in rows})
+            pert["perturb_strength"] = strengths[0] if len(strengths) == 1 else strengths
+            if "push" in kinds:
+                st = [r.get("push_status", "") for r in rows]
+                pert["push_status_counts"] = {k: st.count(k) for k in PUSH_STATUS}
+                pert["n_push_clipped"] = sum(1 for r in rows if r.get("push_clip"))
+                pushed = [_f(r["push_d_actual"]) for r in rows if r.get("push_status") == "pushed"]
+                pert["mean_push_d_actual"] = float(np.mean(pushed)) if pushed else float("nan")
     return {
         "n_episodes": n,
         "n_success": n_success,
@@ -148,6 +165,7 @@ def summarize_rows(rows: list[dict]) -> dict:
         "total_batch_wall_s": total_wall,
         "wall_s_per_episode": total_wall / n if n else float("nan"),
         **motion,
+        **pert,
     }
 
 

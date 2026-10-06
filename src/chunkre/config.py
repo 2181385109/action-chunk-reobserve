@@ -86,6 +86,8 @@ class EvalConfig:
     log_traj: bool = False          # 逐步轨迹 -> <out>/traj/batch_*.npz（chunkre.traj）
     save_frames: list[int] = field(default_factory=list)   # 这些种子导出画面 -> <out>/frames/
     frame_every: int = 10           # 每隔几步存一张 PNG
+    # T4：扰动 {kind, strength, params}（chunkre.perturb）；空 / kind=none = 无扰动（不进续跑指纹，旧结果照常续跑）
+    perturb: dict = field(default_factory=dict)
 
     def __post_init__(self):
         if self.model not in MODELS:
@@ -102,6 +104,15 @@ class EvalConfig:
         self.save_frames = parse_seeds(self.save_frames) if self.save_frames not in (None, "") else []
         if int(self.frame_every) < 1:
             raise ValueError("frame_every 必须 >= 1")
+        from .perturb import make_perturbation
+
+        # 校验并补全默认参数（不建环境）：之后 self.perturb 的 params 是实际取值，续跑指纹因此与“写没写默认值”无关
+        p = make_perturbation(self.perturb, self.model)
+        self.perturb = dict(kind=p.kind, strength=p.strength, params=p.params)
+
+    @property
+    def perturb_active(self) -> bool:
+        return self.perturb["kind"] != "none"
 
     @property
     def k_effective(self) -> int:
@@ -120,12 +131,39 @@ class EvalConfig:
         return d
 
 
+def merge_perturb(base, kind=None, strength=None, params: dict | None = None) -> dict:
+    """YAML 里的 perturb 与命令行 --perturb / --perturb-strength / --perturb-param 合并（命令行优先，params 逐键覆盖）。"""
+    d = dict(base or {})
+    if kind is not None:
+        d["kind"] = kind
+    if strength is not None:
+        d["strength"] = strength
+    if params:
+        d["params"] = dict(d.get("params") or {}, **params)
+    return d
+
+
+def parse_param_kv(items) -> dict:
+    """['t_lo=20', 't_hi=100'] -> {'t_lo': 20, 't_hi': 100}（值按 YAML 解析：数字 / 布尔 / 字符串）。"""
+    out = {}
+    for it in items or []:
+        if "=" not in it:
+            raise ValueError(f"--perturb-param 需要 key=value，收到 {it!r}")
+        k, v = it.split("=", 1)
+        out[k.strip()] = yaml.safe_load(v)
+    return out
+
+
 def load_config(path=None, overrides: dict | None = None) -> EvalConfig:
     d = {}
     if path:
         with open(path, encoding="utf-8") as f:
             d = yaml.safe_load(f) or {}
-    for key, val in (overrides or {}).items():
+    overrides = dict(overrides or {})
+    pk, ps, pp = (overrides.pop(x, None) for x in ("perturb_kind", "perturb_strength", "perturb_params"))
+    if pk is not None or ps is not None or pp:
+        d["perturb"] = merge_perturb(d.get("perturb"), pk, ps, pp)
+    for key, val in overrides.items():
         if val is not None:
             d[key] = val
     known = set(EvalConfig.__dataclass_fields__)
