@@ -6,7 +6,7 @@ set -euo pipefail
 
 CHUNK_ROOT="/mnt/d/xiangmu/chunk-reobserve"
 CHUNK_VENV="/root/venvs/chunk-reobserve"
-LEROBOT_VERSION="${LEROBOT_VERSION:-PLACEHOLDER}"
+LEROBOT_VERSION="${LEROBOT_VERSION:-0.3.3}"
 # extras 名称随版本不同，若 setup 失败见 docs/ENVIRONMENT.md
 LEROBOT_EXTRAS="${LEROBOT_EXTRAS:-aloha,pusht}"
 
@@ -39,7 +39,10 @@ TORCH_INDEX="${TORCH_INDEX:-https://download.pytorch.org/whl/cu124}"
 if [ -n "${TORCH_SPEC:-}" ]; then
   uv pip install $TORCH_SPEC --index-url "$TORCH_INDEX" --extra-index-url "$PIP_INDEX_URL"
 fi
-uv pip install "lerobot[$LEROBOT_EXTRAS]==$LEROBOT_VERSION"
+# requirements.lock.txt 固定了 T1 验证通过的全部依赖版本；存在则作为约束，保证可复现
+CONSTRAINT=""
+[ -f "$CHUNK_ROOT/requirements.lock.txt" ] && CONSTRAINT="-c $CHUNK_ROOT/requirements.lock.txt"
+uv pip install "lerobot[$LEROBOT_EXTRAS]==$LEROBOT_VERSION" $CONSTRAINT
 
 echo "[setup] 完成。版本清单："
 python - <<'PY'

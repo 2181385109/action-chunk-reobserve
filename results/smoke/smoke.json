@@ -1,0 +1,100 @@
+{
+  "config": {
+    "seeds": [
+      0,
+      1
+    ],
+    "device": "cuda",
+    "MUJOCO_GL": "egl",
+    "HF_ENDPOINT": "https://huggingface.co",
+    "note": "官方默认推理设置，未改 n_action_steps"
+  },
+  "versions": {
+    "lerobot": "0.3.3",
+    "torch": "2.7.1",
+    "torchvision": "0.22.1",
+    "numpy": "2.5.3",
+    "gymnasium": "0.29.1",
+    "gym-aloha": "0.1.4",
+    "gym-pusht": "0.1.6",
+    "mujoco": "3.8.1",
+    "dm-control": "1.0.41"
+  },
+  "python": "3.12.3",
+  "cuda": {
+    "available": true,
+    "torch_cuda": "12.6",
+    "device": "NVIDIA GeForce RTX 4060 Laptop GPU"
+  },
+  "models": {
+    "act": {
+      "repo": "lerobot/act_aloha_sim_transfer_cube_human",
+      "policy": {
+        "policy_class": "ACTPolicy",
+        "chunk_size": 100,
+        "horizon": null,
+        "n_action_steps": 100,
+        "n_obs_steps": 1,
+        "temporal_ensemble_coeff": null,
+        "device": "cuda:0",
+        "load_s": 1.0978130250005051
+      },
+      "first_obs_image": {
+        "shape": [
+          480,
+          640,
+          3
+        ],
+        "dtype": "uint8",
+        "pixel_mean": 39.86694118923611,
+        "pixel_std": 50.720739636271546,
+        "n_unique_values": 195
+      }
+    },
+    "dp": {
+      "repo": "lerobot/diffusion_pusht",
+      "policy": {
+        "policy_class": "DiffusionPolicy",
+        "chunk_size": null,
+        "horizon": 16,
+        "n_action_steps": 8,
+        "n_obs_steps": 2,
+        "temporal_ensemble_coeff": null,
+        "device": "cuda:0",
+        "load_s": 3.1040974339994136
+      },
+      "first_obs_image": {
+        "shape": [
+          96,
+          96,
+          3
+        ],
+        "dtype": "uint8",
+        "pixel_mean": 249.26009114583334,
+        "pixel_std": 21.720649800810982,
+        "n_unique_values": 89
+      }
+    }
+  },
+  "summary": {
+    "act": {
+      "n_episodes": 2,
+      "n_success": 1,
+      "mean_steps": 332.0,
+      "mean_wall_s": 4.896590682499664,
+      "mean_policy_s": 0.3589624369960802,
+      "mean_env_s": 4.036065595999389,
+      "mean_max_reward": 3.0
+    },
+    "dp": {
+      "n_episodes": 2,
+      "n_success": 1,
+      "mean_steps": 267.0,
+      "mean_wall_s": 53.243443811999896,
+      "mean_policy_s": 52.66207626549294,
+      "mean_env_s": 0.45870487447973574,
+      "mean_max_reward": 0.7894158910970864
+    }
+  },
+  "episodes_csv": "results/smoke/smoke_episodes.csv"
+}

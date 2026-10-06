@@ -15,9 +15,20 @@ export PIP_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 export UV_INDEX_URL="$PIP_INDEX_URL"
 export UV_DEFAULT_INDEX="$PIP_INDEX_URL"
 
-# --- 渲染后端（最终选择见 docs/ENVIRONMENT.md）---
+# --- 渲染后端（实测结论见 docs/ENVIRONMENT.md）---
+# WSL 里 MUJOCO_GL=egl 默认落到 Mesa llvmpipe（CPU 软渲染，aloha ~67 ms/步）；osmesa 同样是 CPU（~66 ms/步）。
+# 用 Mesa 的 D3D12 驱动可以走 NVIDIA GPU 渲染（aloha ~12 ms/步）。默认用 GPU；
+# 想退回 CPU 软渲染：export CHUNK_RENDER=cpu 再 source。注意：不同渲染器像素有细微差别，
+# 同一个研究里所有正式结果必须用同一种（默认 gpu）。
 export MUJOCO_GL="${MUJOCO_GL:-egl}"
 export PYOPENGL_PLATFORM="${PYOPENGL_PLATFORM:-$MUJOCO_GL}"
+export CHUNK_RENDER="${CHUNK_RENDER:-gpu}"
+if [ "$CHUNK_RENDER" = "gpu" ]; then
+  export GALLIUM_DRIVER=d3d12
+  export MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA
+else
+  unset GALLIUM_DRIVER MESA_D3D12_DEFAULT_ADAPTER_NAME
+fi
 
 # --- 其他 ---
 export PYTHONUNBUFFERED=1
