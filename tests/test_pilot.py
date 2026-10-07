@@ -21,15 +21,17 @@ def _load_script(name):
     return mod
 
 
-def test_grid_is_5x11_unique():
+def test_grid_is_55_plus_noise32_supplement_unique():
     cs = cells()
-    assert len(cs) == 55 and len({c.name for c in cs}) == 55
+    assert len(cs) == 59 and len({c.name for c in cs}) == 59
     assert {c.policy for c in cs} == {"k10", "k20", "k50", "k100", "te"}
     by_kind = {}
     for c in cs:
         by_kind.setdefault(c.kind, set()).add(c.strength)
-    assert by_kind == {"none": {0.0}, "push": {0.02, 0.04, 0.06}, "obs_noise": {4.0, 8.0, 16.0},
+    assert by_kind == {"none": {0.0}, "push": {0.02, 0.04, 0.06}, "obs_noise": {4.0, 8.0, 16.0, 32.0},
                        "action_delay": {1.0, 3.0, 5.0, 10.0}}
+    n32 = [c.name for c in cs if c.kind == "obs_noise" and c.strength == 32.0]
+    assert n32 == ["k20__noise32", "k50__noise32", "k100__noise32", "te__noise32"]   # T6b 补测：k=10 不测
     assert [c.name for c in cs][:5] == ["k10__none", "k20__none", "k50__none", "k100__none", "te__none"]
 
 
@@ -41,7 +43,7 @@ def test_seeds_are_tuning_range_5000_5019():
 
 def test_generated_configs_load_and_match_cell(tmp_path):
     paths = write_configs(tmp_path)
-    assert len(paths) == 55
+    assert len(paths) == 59
     for c, p in zip(cells(), paths):
         cfg = load_config(str(p))
         assert cfg.model == "act" and cfg.batch_size == 10 and len(cfg.seeds) == 20
@@ -100,7 +102,7 @@ def test_analyze_table_and_figures(tmp_path):
     _write_cell(tmp_path, "te__delay3", 7, 3)        # 回合数不足
     stats, missing = ap.collect(tmp_path)
     by = {s["cell"]: s for s in stats}
-    assert len(stats) == 4 and len(missing) == 51
+    assert len(stats) == 4 and len(missing) == 55
     assert by["k10__none"]["flag"] == "floor" and by["k100__none"]["flag"] == "ceiling"
     assert by["k100__noise8"]["flag"] == "" and by["k100__noise8"]["success_rate"] == 0.5
     lo, hi = by["k100__noise8"]["ci_lo"], by["k100__noise8"]["ci_hi"]

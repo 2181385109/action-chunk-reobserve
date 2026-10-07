@@ -1,0 +1,34 @@
+{
+  "name": "te__noise16",
+  "model": "act",
+  "mode": "te",
+  "k": 1,
+  "batch_size": 10,
+  "seeds": "5000..5019 (n=20)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 20,
+    "n_success": 10,
+    "success_rate": 0.5,
+    "success_ci95_wilson": [
+      0.2992980081982123,
+      0.7007019918017877
+    ],
+    "mean_policy_calls": 374.2,
+    "mean_smoothness": 0.016150595639107777,
+    "mean_steps": 374.2,
+    "mean_steps_success": 348.4,
+    "mean_sum_reward": 157.15,
+    "mean_max_reward": 2.4,
+    "n_capped": 0,
+    "n_batches": 2,
+    "total_batch_wall_s": 190.13840573899506,
+    "wall_s_per_episode": 9.506920286949754,
+    "mean_path_length": 5.989259972665889,
+    "mean_jerk": 0.0028244550036355858,
+    "mean_reversal_rate": 0.087122236419404,
+    "perturb_kind": "obs_noise",
+    "perturb_strength": 16.0
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}

@@ -1,0 +1,9 @@
+# T6b 正式评估格子 te__noise4（由 scripts/pilot_tools.py gen 生成，不要手改）
+name: te__noise4
+model: act
+seeds: 200000-200199
+batch_size: 10
+mode: te
+perturb:
+  kind: obs_noise
+  strength: 4

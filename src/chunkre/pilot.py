@@ -1,4 +1,4 @@
-"""T6a 试跑网格：5 种策略 × 11 种扰动条件 = 55 格（只 aloha ACT）。纯计算，不依赖仿真，单元测试覆盖。
+"""T6a 试跑网格：5 种策略 × 11 种扰动条件 = 55 格，加 T6b 补测 σ=32（k=20/50/100/te，k=10 不测）4 格 = 59 格（只 aloha ACT）。纯计算，不依赖仿真，单元测试覆盖。
 
 只用于在调参种子上粗跑、定正式实验的强度档位和每格回合数，不作为结论。
 格子名 = "<策略>__<扰动>"，如 k10__push0.02、te__noise8、k100__delay5、k50__none。
@@ -19,9 +19,11 @@ POLICIES = [("k10", "fixed", 10), ("k20", "fixed", 20), ("k50", "fixed", 50), ("
 PERTURBS = [
     ("none", "none", [0]),
     ("push", "push", [0.02, 0.04, 0.06]),
-    ("noise", "obs_noise", [4, 8, 16]),
+    ("noise", "obs_noise", [4, 8, 16, 32]),   # σ=32 是 T6b 补测（只测 k20/k50/k100/te，见 SKIP）
     ("delay", "action_delay", [1, 3, 5, 10]),
 ]
+# T6b 补测 σ=32 不测 k=10（k=10 在所有条件下都在地板，没有信息）
+SKIP = {("k10", "noise32")}
 CSV_COLUMNS = ["cell", "policy", "perturb", "strength", "n", "n_success", "success_rate", "ci_lo", "ci_hi",
                "mean_policy_calls", "mean_path_length", "mean_jerk", "mean_steps", "flag"]
 FLOOR, CEIL = 0.10, 0.90   # 成功率 <= FLOOR 记“地板”，>= CEIL 记“天花板”
@@ -43,12 +45,14 @@ class Cell:
 
 
 def cells() -> list[Cell]:
-    """55 格，按“扰动类型 → 强度 → 策略”排序（先把一种扰动的所有策略跑完，中途停下也有完整的一块）。"""
+    """59 格，按“扰动类型 → 强度 → 策略”排序（先把一种扰动的所有策略跑完，中途停下也有完整的一块）。"""
     out = []
     for short, kind, levels in PERTURBS:
         for s in levels:
             for pol, mode, k in POLICIES:
                 tag = "none" if kind == "none" else f"{short}{s:g}"
+                if (pol, tag) in SKIP:
+                    continue
                 out.append(Cell(f"{pol}__{tag}", pol, mode, k, short, kind, float(s)))
     return out
 

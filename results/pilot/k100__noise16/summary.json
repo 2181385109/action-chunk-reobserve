@@ -1,0 +1,34 @@
+{
+  "name": "k100__noise16",
+  "model": "act",
+  "mode": "fixed",
+  "k": 100,
+  "batch_size": 10,
+  "seeds": "5000..5019 (n=20)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 20,
+    "n_success": 15,
+    "success_rate": 0.75,
+    "success_ci95_wilson": [
+      0.531299122381256,
+      0.8881382985923343
+    ],
+    "mean_policy_calls": 3.6,
+    "mean_smoothness": 0.025348213153153453,
+    "mean_steps": 322.85,
+    "mean_steps_success": 297.1333333333333,
+    "mean_sum_reward": 191.65,
+    "mean_max_reward": 3.4,
+    "n_capped": 0,
+    "n_batches": 2,
+    "total_batch_wall_s": 139.18394319601066,
+    "wall_s_per_episode": 6.959197159800533,
+    "mean_path_length": 8.105377966449078,
+    "mean_jerk": 0.023540917862365125,
+    "mean_reversal_rate": 0.3686588111265824,
+    "perturb_kind": "obs_noise",
+    "perturb_strength": 16.0
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}

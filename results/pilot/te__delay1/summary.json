@@ -1,0 +1,34 @@
+{
+  "name": "te__delay1",
+  "model": "act",
+  "mode": "te",
+  "k": 1,
+  "batch_size": 10,
+  "seeds": "5000..5019 (n=20)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 20,
+    "n_success": 16,
+    "success_rate": 0.8,
+    "success_ci95_wilson": [
+      0.5839825677481064,
+      0.919342337420202
+    ],
+    "mean_policy_calls": 342.15,
+    "mean_smoothness": 0.019190957281073832,
+    "mean_steps": 342.15,
+    "mean_steps_success": 327.6875,
+    "mean_sum_reward": 230.0,
+    "mean_max_reward": 3.4,
+    "n_capped": 0,
+    "n_batches": 2,
+    "total_batch_wall_s": 142.28902899299283,
+    "wall_s_per_episode": 7.114451449649641,
+    "mean_path_length": 6.490230547900751,
+    "mean_jerk": 0.00248726691488221,
+    "mean_reversal_rate": 0.02995584663195917,
+    "perturb_kind": "action_delay",
+    "perturb_strength": 1.0
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}

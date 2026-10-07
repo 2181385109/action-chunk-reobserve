@@ -1,0 +1,12 @@
+# T6b 正式评估格子 te__push0.06（由 scripts/pilot_tools.py gen 生成，不要手改）
+name: te__push0.06
+model: act
+seeds: 200000-200199
+batch_size: 10
+mode: te
+perturb:
+  kind: push
+  strength: 0.06
+  params:
+    t_lo: 20
+    t_hi: 100

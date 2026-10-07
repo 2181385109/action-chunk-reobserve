@@ -1,0 +1,10 @@
+# T6b 正式评估格子 k50__noise4（由 scripts/pilot_tools.py gen 生成，不要手改）
+name: k50__noise4
+model: act
+seeds: 200000-200199
+batch_size: 10
+mode: fixed
+k: 50
+perturb:
+  kind: obs_noise
+  strength: 4

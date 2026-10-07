@@ -1,0 +1,5 @@
+# seed_guard 拦截演示（2026-10-07，PREREGISTRATION.md 存在但尚未 git commit 时运行 run_main.sh 1-1）
+# 命令: wsl.exe -d Ubuntu-24.04 -u root -- bash scripts/run_main.sh 1-1
+RuntimeError: 种子 200000 >= 200000 仅用于最终评估，而 PREREGISTRATION.md 尚未提交，禁止使用。
+=== seed_guard 拦截：种子 200000-200199 在 PREREGISTRATION.md 提交之前不能使用。没有运行任何回合。
+exit=3
