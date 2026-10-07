@@ -7,6 +7,7 @@
   seeds (B,)  steps (B,)            该批各环境的种子 / 回合步数
   alive (T, B) bool                  该步该环境的回合是否还在进行（之后的值都是 nan）
   action (T, B, A) float32           第 t 步实际发给环境的动作（环境单位）
+  policy_action (T, B, A) float32    只有开了改动作的扰动（T5 action_delay，d>0）：第 t 步策略给出的动作（on_action 之前）
   agent_pos (T, B, A') float32       第 t 步策略看到的观测里的 agent_pos（aloha：14 维关节位置，夹爪为归一化开合度）
   repredict (T,) bool                第 t 步策略是否重新预测了动作块（同一批所有环境同时）
   chunk_idx (T,) int16               第 t 步执行的是当前动作块里的第几个动作（0 起）；te 模式为 -1（多块加权平均）
@@ -73,7 +74,8 @@ class TrajRecorder:
     def active(self) -> bool:
         return self.log_traj or bool(self.frame_env)
 
-    def record(self, t: int, obs, env, action: np.ndarray, alive: np.ndarray, repredicted: bool, chunk):
+    def record(self, t: int, obs, env, action: np.ndarray, alive: np.ndarray, repredicted: bool, chunk,
+               policy_action: np.ndarray | None = None):
         """在执行第 t 步动作之前调用（obs 是策略这一步看到的观测）。chunk：本步新预测的完整动作块 (B, H, A)
         （CPU 上的 numpy，没有重新预测时为 None）。"""
         if self.frame_env and t % self.frame_every == 0:
@@ -90,6 +92,8 @@ class TrajRecorder:
             self.chunk_idx = 0 if repredicted else self.chunk_idx + 1
         row = dict(action=np.asarray(action, dtype=np.float32), alive=alive.copy(), repredict=bool(repredicted),
                    chunk_idx=self.chunk_idx)
+        if policy_action is not None:
+            row["policy_action"] = np.asarray(policy_action, dtype=np.float32)
         if isinstance(obs, dict) and "agent_pos" in obs:
             row["agent_pos"] = np.asarray(obs["agent_pos"], dtype=np.float32)
         cp = cube_positions(env)
@@ -142,6 +146,8 @@ class TrajRecorder:
                    action=stack("action", (A,)),
                    repredict=np.array([r["repredict"] for r in self.rows]),
                    chunk_idx=np.array([r["chunk_idx"] for r in self.rows], dtype=np.int16))
+        if "policy_action" in self.rows[0]:
+            out["policy_action"] = stack("policy_action", (A,))
         if "agent_pos" in self.rows[0]:
             out["agent_pos"] = stack("agent_pos", (self.rows[0]["agent_pos"].shape[1],))
         if "cube_pos" in self.rows[0]:

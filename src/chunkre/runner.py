@@ -252,6 +252,7 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
         action = action.to("cpu").numpy()
         t_pol += time.perf_counter() - ta
         assert action.ndim == 2, "动作应为 (batch, action_dim)"
+        policy_action = action
         action = pert.on_action(step, action, alive)
         if counter.n > n0:
             calls[alive] += counter.n - n0
@@ -264,7 +265,8 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
             ep_actions[i].append(action[i])
         if rec is not None:
             repred = counter.n > n0
-            rec.record(step, obs, env, action, alive, repred, counter.last if repred else None)
+            rec.record(step, obs, env, action, alive, repred, counter.last if repred else None,
+                       policy_action=policy_action if pert.touches_action else None)
         pert.on_state(step, env, alive)
         if rec is not None and pert.touches_state:
             rec.record_after_state(env)

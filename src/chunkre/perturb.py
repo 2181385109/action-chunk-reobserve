@@ -1,8 +1,10 @@
 """扰动框架（T4）：在统一评估的逐步循环里注入可控扰动。
 
+已实现：push（推方块，T4，只 aloha）、obs_noise（相机图像高斯噪声，T5）、action_delay（动作延迟 d 步，T5）。
+
 一个扰动对象有三个钩子（默认都是“原样返回 / 什么都不做”）：
-  on_obs(t, obs, alive)    -> obs      改策略在第 t 步看到的观测（给 T5 观测噪声用）
-  on_action(t, action, alive) -> action 改第 t 步发给环境的动作（给 T5 动作延迟用）
+  on_obs(t, obs, alive)    -> obs      改策略在第 t 步看到的观测（观测噪声；动作延迟也在第 0 步从这里读保持位置）
+  on_action(t, action, alive) -> action 改第 t 步发给环境的动作（动作延迟）
   on_state(t, env, alive)             在第 t 步改仿真状态（推方块用）
 runner.run_batch 中第 t 步的顺序：
   观测 obs_t -> on_obs -> 策略出动作 -> on_action -> 记录（轨迹 / 指标） -> on_state -> env.step(动作)
@@ -19,11 +21,12 @@ from __future__ import annotations
 
 import math
 import zlib
+from collections import deque
 
 import numpy as np
 
 KINDS = ("none", "push", "obs_noise", "action_delay")
-NOT_IMPLEMENTED = {"obs_noise": "T5", "action_delay": "T5"}
+NOT_IMPLEMENTED: dict[str, str] = {}
 
 # 每回合写进 episodes.csv 的扰动列（排在最后）。无扰动时 perturb_kind=none、strength=0，其余列为空。
 PERTURB_COLUMNS = [
@@ -73,6 +76,10 @@ def make_perturbation(spec, model: str | None = None) -> "Perturbation":
         if model is not None and model != "act":
             raise ValueError("push（推方块）目前只实现了 aloha（model=act）；PushT 版本留到第 8 天")
         return PushCube(s["strength"], s["params"])
+    if s["kind"] == "obs_noise":
+        return ObsNoise(s["strength"], s["params"])
+    if s["kind"] == "action_delay":
+        return ActionDelay(s["strength"], s["params"])
     raise AssertionError(s["kind"])
 
 
@@ -84,6 +91,7 @@ class Perturbation:
 
     kind = "none"
     touches_state = False       # True 时 runner 在 on_state 之后额外记录一次方块位置（轨迹 cube_pos_after）
+    touches_action = False      # True 时轨迹额外记录 on_action 之前策略给出的动作（policy_action，T5 延迟用）
 
     def __init__(self, strength: float = 0.0, params: dict | None = None):
         self.strength = float(strength)
@@ -306,3 +314,130 @@ class PushCube(Perturbation):
         return dict(super().describe(), allowed_rect_xy=self._rect, geometry=self._geom,
                     rng="numpy default_rng(SeedSequence([回合种子, crc32('push')]))；先抽 push_step 再抽角度",
                     timing="第 push_step 步：策略已选好该步动作之后、env.step 之前改方块位置")
+
+
+# ----------------------------------------------------------------------------------------------
+# 观测噪声（T5，aloha / PushT 通用）
+# ----------------------------------------------------------------------------------------------
+def camera_arrays(obs) -> list[tuple[str | None, np.ndarray]]:
+    """观测里的相机图像 [(相机名, (B, H, W, C) 数组)]：aloha 为 pixels={'top': ...}，PushT 为 pixels=数组（名为 None）。"""
+    px = obs.get("pixels") if isinstance(obs, dict) else None
+    if px is None:
+        return []
+    if isinstance(px, dict):
+        return [(k, px[k]) for k in px]
+    return [(None, px)]
+
+
+class ObsNoise(Perturbation):
+    """给策略看到的相机图像加独立高斯噪声，强度 σ = strength（以 0–255 像素值为单位）。
+
+    第 t 步、第 i 个仍在进行的回合、每个相机：noisy = clip(rint(img + σ·N(0,1)), 0, 255)，转回原数据类型（uint8）。
+    每步每像素每通道独立；随机数来自该回合自己的 episode_rng(种子, "obs_noise")，按“步 → 相机（观测里的顺序）”
+    的固定顺序抽取，所以同一种子在不同 k、不同批内位置下噪声完全相同。
+    只改图像，agent_pos（关节位置）原样不动；不原地修改环境给的数组（返回新的 obs 字典和新数组）。
+    已结束的子环境不加噪声（它的动作会被丢掉）。σ = 0 时 on_obs 直接返回原对象，也不建随机数。
+    取整用 rint（四舍五入到偶数），所以“加噪图 − 原图”的标准差 ≈ sqrt(σ² + 1/12)，被 0/255 截断的像素会让它略小。
+    """
+
+    kind = "obs_noise"
+    DEFAULTS: dict = {}
+
+    def __init__(self, strength: float, params: dict | None = None):
+        params = dict(params or {})
+        if params:
+            raise ValueError(f"obs_noise 没有可设的参数，收到 {sorted(params)}")
+        super().__init__(strength, params)
+        self.rngs: list[np.random.Generator] = []
+
+    def begin_batch(self, env, seeds) -> None:
+        super().begin_batch(env, seeds)
+        self.rngs = [episode_rng(s, self.kind) for s in self.seeds] if self.strength > 0 else []
+
+    def on_obs(self, t: int, obs, alive: np.ndarray):
+        if self.strength == 0.0:
+            return obs
+        cams = camera_arrays(obs)
+        if not cams:
+            raise ValueError("obs_noise：观测里没有相机图像（pixels）")
+        live = np.flatnonzero(alive)
+        noisy = {}
+        for name, img in cams:
+            img = np.asarray(img)
+            out = img.copy()
+            for i in live:
+                buf = self.rngs[i].standard_normal(img.shape[1:], dtype=np.float32)
+                buf *= np.float32(self.strength)
+                buf += img[i]
+                np.rint(buf, out=buf)
+                np.clip(buf, 0.0, 255.0, out=buf)
+                out[i] = buf.astype(img.dtype)
+            noisy[name] = out
+        new = dict(obs)
+        new["pixels"] = noisy[None] if None in noisy else {k: noisy[k] for k in obs["pixels"]}
+        return new
+
+    def describe(self) -> dict:
+        return dict(super().describe(), unit="0–255 像素值",
+                    rng="numpy default_rng(SeedSequence([回合种子, crc32('obs_noise')]))；每步每相机抽 (H,W,C) 个 float32 标准正态",
+                    formula="clip(rint(img + σ·N(0,1)), 0, 255) -> 原 dtype；只加在 pixels 上，agent_pos 不变",
+                    timing="第 t 步：环境给出观测之后、预处理和策略之前（策略只看到加噪后的图）")
+
+
+# ----------------------------------------------------------------------------------------------
+# 动作延迟（T5，aloha / PushT 通用）
+# ----------------------------------------------------------------------------------------------
+class ActionDelay(Perturbation):
+    """环境在第 t 步执行策略在第 t−d 步给出的动作（先进先出缓冲），d = strength（步，整数）。
+
+    策略照常每步被调用（动作队列、重新预测时机都与不延迟时相同），只是它的输出晚 d 步才发给环境。
+    前 d 步（t < d）执行“保持位置”：动作 = 回合 reset 后第 0 步观测里的 agent_pos。
+      - aloha：agent_pos = 14 维关节位置（夹爪为归一化开合度），与动作同一单位（关节目标、夹爪归一化位置），可直接当目标；
+      - PushT：agent_pos = 智能体 xy（像素坐标 0–512），动作 = PD 控制的目标 xy，同一单位，可直接当目标。
+    这一步没有随机性，所以不建随机数。d = 0 时 on_obs / on_action 直接返回原对象，不建缓冲。
+    已结束的子环境同样经过缓冲（它们的动作会被丢掉，不影响结果）。
+    """
+
+    kind = "action_delay"
+    touches_action = True
+    DEFAULTS: dict = {}
+
+    def __init__(self, strength: float, params: dict | None = None):
+        params = dict(params or {})
+        if params:
+            raise ValueError(f"action_delay 没有可设的参数，收到 {sorted(params)}")
+        if float(strength) != int(strength):
+            raise ValueError(f"action_delay 的强度 d 必须是整数步，收到 {strength}")
+        super().__init__(int(strength), params)
+        self.d = int(strength)
+        self.touches_action = self.d > 0
+        self.hold = None
+        self.buf: deque = deque()
+
+    def begin_batch(self, env, seeds) -> None:
+        super().begin_batch(env, seeds)
+        self.hold = None
+        self.buf = deque()
+
+    def on_obs(self, t: int, obs, alive: np.ndarray):
+        if self.d > 0 and t == 0:
+            self.hold = np.array(obs["agent_pos"], copy=True)
+        return obs
+
+    def on_action(self, t: int, action: np.ndarray, alive: np.ndarray) -> np.ndarray:
+        if self.d == 0:
+            return action
+        if self.hold is None:
+            raise RuntimeError("action_delay：第 0 步没有拿到 reset 后的 agent_pos")
+        if self.hold.shape != action.shape:
+            raise ValueError(f"action_delay：agent_pos 形状 {self.hold.shape} 与动作形状 {action.shape} 不同，不能当保持位置的目标")
+        self.buf.append(np.array(action, copy=True))
+        if len(self.buf) > self.d:
+            return self.buf.popleft()
+        return self.hold.astype(action.dtype)
+
+    def describe(self) -> dict:
+        return dict(super().describe(), unit="控制步（aloha 50 Hz = 20 ms/步；PushT 10 Hz = 100 ms/步）",
+                    hold="t < d 时动作 = reset 后第 0 步观测的 agent_pos（aloha 关节目标 / PushT 智能体 xy）",
+                    rng="无随机性",
+                    timing="第 t 步：策略照常出动作 a_t 入队，发给环境的是 a_{t-d}；轨迹的 action 是执行的动作，policy_action 是策略输出")

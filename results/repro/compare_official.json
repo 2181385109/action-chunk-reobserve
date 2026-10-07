@@ -1,0 +1,55 @@
+{
+  "act": {
+    "model": "act",
+    "run_dir": "results/repro/act",
+    "n_episodes": 500,
+    "ours_pc": 82.6,
+    "ours_ci95_pc": [
+      79.03184021001321,
+      85.67105279189357
+    ],
+    "official_pc": 83.0,
+    "diff_pp": -0.4000000000000057,
+    "verdict": "合格",
+    "per_seed": {
+      "n_common": 500,
+      "agree": 476,
+      "agreement_rate": 0.952,
+      "both_success": 402,
+      "both_fail": 74,
+      "only_official_success": 13,
+      "only_ours_success": 11,
+      "official_rate_on_common": 0.83,
+      "ours_rate_on_common": 0.826,
+      "chance_agreement_if_independent": 0.71516,
+      "note": "只作参考，不作判定"
+    }
+  },
+  "dp": {
+    "model": "dp",
+    "run_dir": "results/repro/dp",
+    "n_episodes": 500,
+    "ours_pc": 66.2,
+    "ours_ci95_pc": [
+      61.94427380354692,
+      70.2086975654988
+    ],
+    "official_pc": 65.4,
+    "diff_pp": 0.7999999999999972,
+    "verdict": "合格",
+    "per_seed": {
+      "n_common": 500,
+      "agree": 272,
+      "agreement_rate": 0.544,
+      "both_success": 215,
+      "both_fail": 57,
+      "only_official_success": 112,
+      "only_ours_success": 116,
+      "official_rate_on_common": 0.654,
+      "ours_rate_on_common": 0.662,
+      "chance_agreement_if_independent": 0.549896,
+      "note": "只作参考，不作判定"
+    }
+  },
+  "criteria": "|差|<=7pp 合格；7<|差|<=15 可继续但需在 README 说明；>15 需排查"
+}

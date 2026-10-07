@@ -1,0 +1,98 @@
+{
+  "act": {
+    "model": "act",
+    "sigma_in_loop": 16.0,
+    "gl_renderer": "D3D12 (NVIDIA GeForce RTX 4060 Laptop GPU)",
+    "steps": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      59
+    ],
+    "n_images": 60,
+    "image_shape": [
+      480,
+      640,
+      3
+    ],
+    "emp_std_noisy_minus_orig": 13.132169668666958,
+    "emp_mean_noisy_minus_orig": 3.534175582320602,
+    "expected_std_if_no_clip": 16.002603954773527,
+    "per_image_emp_std_min_max": [
+      13.09079562559186,
+      13.156284690394346
+    ],
+    "image_pixel_std_mean": 51.09906801782724,
+    "image_pixel_std_min_max": [
+      49.58086967714626,
+      52.467040445437455
+    ],
+    "image_local8x8_std_median": 0.0,
+    "frac_pixels_saturated_orig": 0.5537942165798612,
+    "levels_offline": {
+      "4.0": {
+        "emp_std": 3.2924420080212276,
+        "expected_no_clip": 4.010403138505321
+      },
+      "8.0": {
+        "emp_std": 6.5697850827665984,
+        "expected_no_clip": 8.005206639015219
+      },
+      "16.0": {
+        "emp_std": 13.124906968821794,
+        "expected_no_clip": 16.002603954773527
+      }
+    },
+    "note": "经验标准差 = 所有记录图像所有像素通道上 (加噪 − 原图) 的标准差；rint 取整使无截断时期望为 sqrt(σ²+1/12)"
+  },
+  "dp": {
+    "model": "dp",
+    "sigma_in_loop": 16.0,
+    "gl_renderer": "n/a (pygame 渲染，不经过 OpenGL)",
+    "steps": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      59
+    ],
+    "n_images": 60,
+    "image_shape": [
+      96,
+      96,
+      3
+    ],
+    "emp_std_noisy_minus_orig": 10.345277255267943,
+    "emp_mean_noisy_minus_orig": -5.699127724729938,
+    "expected_std_if_no_clip": 16.002603954773527,
+    "per_image_emp_std_min_max": [
+      10.119208718236514,
+      10.513818407863763
+    ],
+    "image_pixel_std_mean": 22.372995784462503,
+    "image_pixel_std_min_max": [
+      20.577707628464644,
+      23.099494962756626
+    ],
+    "image_local8x8_std_median": 0.0,
+    "frac_pixels_saturated_orig": 0.8631257233796296,
+    "levels_offline": {
+      "4.0": {
+        "emp_std": 2.686781794568883,
+        "expected_no_clip": 4.010403138505321
+      },
+      "8.0": {
+        "emp_std": 5.285633316188545,
+        "expected_no_clip": 8.005206639015219
+      },
+      "16.0": {
+        "emp_std": 10.343117867644024,
+        "expected_no_clip": 16.002603954773527
+      }
+    },
+    "note": "经验标准差 = 所有记录图像所有像素通道上 (加噪 − 原图) 的标准差；rint 取整使无截断时期望为 sqrt(σ²+1/12)"
+  }
+}

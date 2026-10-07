@@ -1,0 +1,34 @@
+{
+  "name": "n3_dp_delay",
+  "model": "dp",
+  "mode": "fixed",
+  "k": 8,
+  "batch_size": 10,
+  "seeds": "0..9 (n=10)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 10,
+    "n_success": 3,
+    "success_rate": 0.3,
+    "success_ci95_wilson": [
+      0.10779126740630099,
+      0.6032218525388546
+    ],
+    "mean_policy_calls": 33.8,
+    "mean_smoothness": 11.071931564221254,
+    "mean_steps": 266.2,
+    "mean_steps_success": 187.33333333333334,
+    "mean_sum_reward": 77.10362793338017,
+    "mean_max_reward": 0.7991899124925705,
+    "n_capped": 0,
+    "n_batches": 1,
+    "total_batch_wall_s": 96.09929363999981,
+    "wall_s_per_episode": 9.609929363999981,
+    "mean_path_length": 2967.8053030780325,
+    "mean_jerk": 11.000569601318878,
+    "mean_reversal_rate": 0.2785174809181873,
+    "perturb_kind": "action_delay",
+    "perturb_strength": 4.0
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}

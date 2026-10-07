@@ -274,10 +274,10 @@ def test_spec_validation():
         normalize_spec({"kind": "push", "strength": -0.1})
     with pytest.raises(ValueError):
         normalize_spec({"kind": "none", "strength": 0.1})
-    with pytest.raises(NotImplementedError):
-        make_perturbation({"kind": "obs_noise", "strength": 0.1})
-    with pytest.raises(NotImplementedError):
-        make_perturbation({"kind": "action_delay", "strength": 1})
+    with pytest.raises(ValueError):
+        make_perturbation({"kind": "obs_noise", "strength": 4, "params": {"bogus": 1}})
+    with pytest.raises(ValueError):
+        make_perturbation({"kind": "action_delay", "strength": 1.5})
     with pytest.raises(ValueError):
         make_perturbation({"kind": "push", "strength": 0.1, "params": {"t_lo": 50, "t_hi": 10}})
     with pytest.raises(ValueError):

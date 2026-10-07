@@ -1,0 +1,412 @@
+{
+  "n1": {
+    "act_noise0": {
+      "a": "results/t5_checks/n1_act_none",
+      "b": "results/t5_checks/n1_act_noise0",
+      "n": 10,
+      "compared_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "mode",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "sum_reward",
+        "max_reward",
+        "n_policy_calls",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate"
+      ],
+      "episodes_identical": 10,
+      "full_episode_actions_identical": 10,
+      "traj_arrays_identical": {
+        "seeds": true,
+        "steps": true,
+        "alive": true,
+        "action": true,
+        "repredict": true,
+        "chunk_idx": true,
+        "agent_pos": true,
+        "cube_pos": true,
+        "chunk_offsets": true,
+        "chunk_sel": true
+      },
+      "success_a": 9,
+      "success_b": 9
+    },
+    "act_delay0": {
+      "a": "results/t5_checks/n1_act_none",
+      "b": "results/t5_checks/n1_act_delay0",
+      "n": 10,
+      "compared_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "mode",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "sum_reward",
+        "max_reward",
+        "n_policy_calls",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate"
+      ],
+      "episodes_identical": 10,
+      "full_episode_actions_identical": 10,
+      "traj_arrays_identical": {
+        "seeds": true,
+        "steps": true,
+        "alive": true,
+        "action": true,
+        "repredict": true,
+        "chunk_idx": true,
+        "agent_pos": true,
+        "cube_pos": true,
+        "chunk_offsets": true,
+        "chunk_sel": true
+      },
+      "success_a": 9,
+      "success_b": 9
+    },
+    "dp_noise0": {
+      "a": "results/t5_checks/n1_dp_none",
+      "b": "results/t5_checks/n1_dp_noise0",
+      "n": 10,
+      "compared_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "mode",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "sum_reward",
+        "max_reward",
+        "n_policy_calls",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate"
+      ],
+      "episodes_identical": 10,
+      "full_episode_actions_identical": 10,
+      "traj_arrays_identical": {
+        "seeds": true,
+        "steps": true,
+        "alive": true,
+        "action": true,
+        "repredict": true,
+        "chunk_idx": true,
+        "agent_pos": true,
+        "chunk_offsets": true,
+        "chunk_sel": true
+      },
+      "success_a": 5,
+      "success_b": 5
+    },
+    "dp_delay0": {
+      "a": "results/t5_checks/n1_dp_none",
+      "b": "results/t5_checks/n1_dp_delay0",
+      "n": 10,
+      "compared_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "mode",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "sum_reward",
+        "max_reward",
+        "n_policy_calls",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate"
+      ],
+      "episodes_identical": 10,
+      "full_episode_actions_identical": 10,
+      "traj_arrays_identical": {
+        "seeds": true,
+        "steps": true,
+        "alive": true,
+        "action": true,
+        "repredict": true,
+        "chunk_idx": true,
+        "agent_pos": true,
+        "chunk_offsets": true,
+        "chunk_sel": true
+      },
+      "success_a": 5,
+      "success_b": 5
+    }
+  },
+  "n2": {
+    "act": {
+      "model": "act",
+      "sigma_in_loop": 16.0,
+      "gl_renderer": "D3D12 (NVIDIA GeForce RTX 4060 Laptop GPU)",
+      "steps": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        59
+      ],
+      "n_images": 60,
+      "image_shape": [
+        480,
+        640,
+        3
+      ],
+      "emp_std_noisy_minus_orig": 13.132169668666958,
+      "emp_mean_noisy_minus_orig": 3.534175582320602,
+      "expected_std_if_no_clip": 16.002603954773527,
+      "per_image_emp_std_min_max": [
+        13.09079562559186,
+        13.156284690394346
+      ],
+      "image_pixel_std_mean": 51.09906801782724,
+      "image_pixel_std_min_max": [
+        49.58086967714626,
+        52.467040445437455
+      ],
+      "image_local8x8_std_median": 0.0,
+      "frac_pixels_saturated_orig": 0.5537942165798612,
+      "levels_offline": {
+        "4.0": {
+          "emp_std": 3.2924420080212276,
+          "expected_no_clip": 4.010403138505321
+        },
+        "8.0": {
+          "emp_std": 6.5697850827665984,
+          "expected_no_clip": 8.005206639015219
+        },
+        "16.0": {
+          "emp_std": 13.124906968821794,
+          "expected_no_clip": 16.002603954773527
+        }
+      },
+      "note": "经验标准差 = 所有记录图像所有像素通道上 (加噪 − 原图) 的标准差；rint 取整使无截断时期望为 sqrt(σ²+1/12)"
+    },
+    "dp": {
+      "model": "dp",
+      "sigma_in_loop": 16.0,
+      "gl_renderer": "n/a (pygame 渲染，不经过 OpenGL)",
+      "steps": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        59
+      ],
+      "n_images": 60,
+      "image_shape": [
+        96,
+        96,
+        3
+      ],
+      "emp_std_noisy_minus_orig": 10.345277255267943,
+      "emp_mean_noisy_minus_orig": -5.699127724729938,
+      "expected_std_if_no_clip": 16.002603954773527,
+      "per_image_emp_std_min_max": [
+        10.119208718236514,
+        10.513818407863763
+      ],
+      "image_pixel_std_mean": 22.372995784462503,
+      "image_pixel_std_min_max": [
+        20.577707628464644,
+        23.099494962756626
+      ],
+      "image_local8x8_std_median": 0.0,
+      "frac_pixels_saturated_orig": 0.8631257233796296,
+      "levels_offline": {
+        "4.0": {
+          "emp_std": 2.686781794568883,
+          "expected_no_clip": 4.010403138505321
+        },
+        "8.0": {
+          "emp_std": 5.285633316188545,
+          "expected_no_clip": 8.005206639015219
+        },
+        "16.0": {
+          "emp_std": 10.343117867644024,
+          "expected_no_clip": 16.002603954773527
+        }
+      },
+      "note": "经验标准差 = 所有记录图像所有像素通道上 (加噪 − 原图) 的标准差；rint 取整使无截断时期望为 sqrt(σ²+1/12)"
+    }
+  },
+  "n3": {
+    "act_10": {
+      "run": "results/t5_checks/n4_delay_10",
+      "d": 10,
+      "n_episodes": 20,
+      "n_steps": 8000,
+      "n_delayed_steps": 7800,
+      "n_delayed_mismatch": 0,
+      "n_hold_steps": 200,
+      "n_hold_mismatch": 0,
+      "wrong_d_mismatch_seed0": {
+        "9": 389,
+        "11": 389
+      }
+    },
+    "act_100": {
+      "run": "results/t5_checks/n4_delay_100",
+      "d": 10,
+      "n_episodes": 20,
+      "n_steps": 7281,
+      "n_delayed_steps": 7081,
+      "n_delayed_mismatch": 0,
+      "n_hold_steps": 200,
+      "n_hold_mismatch": 0,
+      "wrong_d_mismatch_seed0": {
+        "9": 389,
+        "11": 389
+      }
+    },
+    "act_te": {
+      "run": "results/t5_checks/n4_delay_te",
+      "d": 10,
+      "n_episodes": 20,
+      "n_steps": 7313,
+      "n_delayed_steps": 7113,
+      "n_delayed_mismatch": 0,
+      "n_hold_steps": 200,
+      "n_hold_mismatch": 0,
+      "wrong_d_mismatch_seed0": {
+        "9": 389,
+        "11": 389
+      }
+    },
+    "dp_k8": {
+      "run": "results/t5_checks/n3_dp_delay",
+      "d": 4,
+      "n_episodes": 10,
+      "n_steps": 2662,
+      "n_delayed_steps": 2622,
+      "n_delayed_mismatch": 0,
+      "n_hold_steps": 40,
+      "n_hold_mismatch": 0,
+      "wrong_d_mismatch_seed0": {
+        "3": 295,
+        "5": 295
+      }
+    }
+  },
+  "n4": {
+    "noise_10": {
+      "n": 20,
+      "success": 2,
+      "ci95": [
+        0.027866481213768224,
+        0.3010336452284873
+      ],
+      "mean_policy_calls": 39.6,
+      "mean_smoothness": 0.01869610739600993,
+      "wall_s_per_episode": 11.726396506749733
+    },
+    "noise_100": {
+      "n": 20,
+      "success": 12,
+      "ci95": [
+        0.3865815007622531,
+        0.781193467627183
+      ],
+      "mean_policy_calls": 3.6,
+      "mean_smoothness": 0.025595672921216218,
+      "wall_s_per_episode": 11.167032758799905
+    },
+    "noise_te": {
+      "n": 20,
+      "success": 12,
+      "ci95": [
+        0.3865815007622531,
+        0.781193467627183
+      ],
+      "mean_policy_calls": 344.75,
+      "mean_smoothness": 0.0176764687727855,
+      "wall_s_per_episode": 16.259805110050365
+    },
+    "delay_10": {
+      "n": 20,
+      "success": 0,
+      "ci95": [
+        0.0,
+        0.16112515805281938
+      ],
+      "mean_policy_calls": 40.0,
+      "mean_smoothness": 0.016488072532210466,
+      "wall_s_per_episode": 8.258800561499811
+    },
+    "delay_100": {
+      "n": 20,
+      "success": 9,
+      "ci95": [
+        0.2581978582556243,
+        0.6579146575496577
+      ],
+      "mean_policy_calls": 3.9,
+      "mean_smoothness": 0.025588402968698565,
+      "wall_s_per_episode": 8.78940018659996
+    },
+    "delay_te": {
+      "n": 20,
+      "success": 15,
+      "ci95": [
+        0.531299122381256,
+        0.8881382985923343
+      ],
+      "mean_policy_calls": 365.65,
+      "mean_smoothness": 0.01645975085000568,
+      "wall_s_per_episode": 11.166407169199374
+    }
+  },
+  "levels": {
+    "sigma": {
+      "act": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "dp": [
+        4.0,
+        8.0,
+        16.0
+      ]
+    },
+    "d": {
+      "act": [
+        2,
+        5,
+        10
+      ],
+      "dp": [
+        1,
+        2,
+        4
+      ]
+    }
+  }
+}
