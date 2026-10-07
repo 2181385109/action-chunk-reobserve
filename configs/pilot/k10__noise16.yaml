@@ -1,0 +1,10 @@
+# T6a 试跑格子 k10__noise16（由 scripts/pilot_tools.py gen 生成，不要手改）
+name: k10__noise16
+model: act
+seeds: 5000-5019
+batch_size: 10
+mode: fixed
+k: 10
+perturb:
+  kind: obs_noise
+  strength: 16

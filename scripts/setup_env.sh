@@ -46,6 +46,8 @@ CONSTRAINT=""
 uv pip install "lerobot[$LEROBOT_EXTRAS]==$LEROBOT_VERSION" $CONSTRAINT
 # 单元测试（T2 起；不在 requirements.lock.txt 里）
 uv pip install "pytest==8.4.2"
+# T6a 试跑汇总画图（不在 requirements.lock.txt 里）
+uv pip install "matplotlib==3.11.2"
 
 echo "[setup] 完成。版本清单："
 python - <<'PY'

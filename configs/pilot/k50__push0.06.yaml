@@ -1,0 +1,13 @@
+# T6a 试跑格子 k50__push0.06（由 scripts/pilot_tools.py gen 生成，不要手改）
+name: k50__push0.06
+model: act
+seeds: 5000-5019
+batch_size: 10
+mode: fixed
+k: 50
+perturb:
+  kind: push
+  strength: 0.06
+  params:
+    t_lo: 20
+    t_hi: 100

@@ -1,0 +1,7 @@
+# T6a 试跑格子 k100__none（由 scripts/pilot_tools.py gen 生成，不要手改）
+name: k100__none
+model: act
+seeds: 5000-5019
+batch_size: 10
+mode: fixed
+k: 100

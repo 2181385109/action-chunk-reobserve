@@ -1,0 +1,10 @@
+# T6a 试跑格子 k50__delay5（由 scripts/pilot_tools.py gen 生成，不要手改）
+name: k50__delay5
+model: act
+seeds: 5000-5019
+batch_size: 10
+mode: fixed
+k: 50
+perturb:
+  kind: action_delay
+  strength: 5
