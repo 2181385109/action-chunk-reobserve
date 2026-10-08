@@ -3,7 +3,8 @@
 - 0–9999：调试和调参（含复现），随时可用。
 - 10000–199999：保留，不使用（官方 DP 训练种子 100000，训练中的评估用过 100000 开头的种子）。
 - >=200000：只用于最终评估；对应的登记文件在仓库里存在且已 git 提交之前，直接抛错。
-  ACT（model=None / "act"）看 PREREGISTRATION.md；DP（model="dp"，T9）看 PREREGISTRATION_DP.md。
+  ACT（model=None / "act"）看 PREREGISTRATION.md；DP（model="dp"，T9）看 PREREGISTRATION_DP.md；
+  自训练 ACT（model="act_own"，T10b；run_eval 在 --policy-path 不为空时用 guard_model() 得到它）看 PREREGISTRATION_OWN.md。
 - 负数：不允许。
 """
 from __future__ import annotations
@@ -15,7 +16,15 @@ ROOT = Path(__file__).resolve().parents[2]
 DEBUG_MAX = 9999
 FINAL_MIN = 200000
 # 模型 -> 登记文件。model=None（不知道模型的老调用）按 ACT 处理，行为与 T2 起完全一致。
-PREREG_FILES = {"act": "PREREGISTRATION.md", "dp": "PREREGISTRATION_DP.md"}
+PREREG_FILES = {"act": "PREREGISTRATION.md", "dp": "PREREGISTRATION_DP.md", "act_own": "PREREGISTRATION_OWN.md"}
+
+
+def guard_model(model: str | None, policy_path=None) -> str | None:
+    """评估配置 -> 种子保护用的“模型键”：ACT 加载本地检查点（policy_path 不为空）= 自训练模型 "act_own"，
+    看 PREREGISTRATION_OWN.md；其余照旧（hub 模型 / DP 不变）。"""
+    if policy_path not in (None, "") and model in (None, "act"):
+        return "act_own"
+    return model
 
 
 def prereg_file(model: str | None) -> str:

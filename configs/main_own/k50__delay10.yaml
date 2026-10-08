@@ -1,0 +1,11 @@
+# T10b 自训练 ACT 正式评估格子 k50__delay10（由 scripts/main_own_tools.py gen 生成，不要手改）
+name: k50__delay10
+model: act
+seeds: 200000-200199
+batch_size: 10
+mode: fixed
+k: 50
+perturb:
+  kind: action_delay
+  strength: 10
+policy_path: /root/train_out/act_own/checkpoints/100000/pretrained_model

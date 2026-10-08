@@ -1,0 +1,11 @@
+item,available,n,both,only_own,only_pretrained,neither,agreement,rate_own,rate_pretrained,reason
+k20__none,True,200,124,0,0,76,1,0.62,0.62,
+k50__none,True,200,148,0,0,52,1,0.74,0.74,
+k100__none,True,200,155,0,0,45,1,0.775,0.775,
+k20__push0.06,True,200,102,0,0,98,1,0.51,0.51,
+k50__push0.06,True,200,81,0,0,119,1,0.405,0.405,
+k100__push0.06,True,200,37,0,0,163,1,0.185,0.185,
+k20__delay10,True,200,0,0,0,200,1,0,0,
+k50__delay10,True,200,39,0,0,161,1,0.195,0.195,
+k100__delay10,True,200,95,0,0,105,1,0.475,0.475,
+"baseline (k=100, seeds 1000–1499)",True,500,413,0,0,87,1,0.826,0.826,

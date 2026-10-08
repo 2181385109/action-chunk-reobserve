@@ -30,7 +30,7 @@ import torch
 from .config import MODELS, TE_COEFF, EvalConfig, check_local_policy_dir, validate_k
 from .metrics import EPISODE_COLUMNS, csv_columns, motion_metrics, summarize_csv
 from .perturb import Perturbation, make_perturbation
-from .seed_guard import check_seeds
+from .seed_guard import check_seeds, guard_model
 from .traj import TrajRecorder
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -85,6 +85,22 @@ def make_env_cfg(model: str):
     return make_env_config(spec["env_type"], **spec["env_kwargs"])
 
 
+def file_sha256(path, chunk: int = 1 << 20) -> str:
+    import hashlib
+
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for blk in iter(lambda: f.read(chunk), b""):
+            h.update(blk)
+    return h.hexdigest()
+
+
+def local_policy_hashes(src) -> dict:
+    """本地检查点目录里文件的 SHA-256（只用来记进 config.json，T10b；不影响评估）。"""
+    src = Path(src)
+    return {n: file_sha256(src / n) for n in ("model.safetensors", "config.json", "train_config.json") if (src / n).is_file()}
+
+
 def build_policy(cfg: EvalConfig):
     """加载策略（hub 预训练；cfg.policy_path 不为 None 时从本地检查点目录，T10a），按 cfg 设置 n_action_steps / 时间集成。
     返回 (policy, policy_info)。"""
@@ -125,6 +141,8 @@ def build_policy(cfg: EvalConfig):
         use_amp=bool(getattr(pc, "use_amp", False)),
         n_params_M=round(sum(p.numel() for p in policy.parameters()) / 1e6, 2),
     )
+    if cfg.policy_path is not None:
+        info["local_checkpoint_sha256"] = local_policy_hashes(source)
     if cfg.model == "dp":
         info["num_inference_steps_effective"] = int(policy.diffusion.num_inference_steps)
     return policy, info
@@ -386,7 +404,7 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
     断点续跑：out_dir 里已有相同配置的 episodes.csv 时，已完整写入的批次直接跳过。
     每批开始都用该批第一个种子重设全局种子，所以续跑结果与一次跑完逐回合相同。
     """
-    check_seeds(cfg.seeds, model=cfg.model)
+    check_seeds(cfg.seeds, model=guard_model(cfg.model, cfg.policy_path))   # 本地 ACT 检查点 -> PREREGISTRATION_OWN.md
     if cfg.policy_path is not None:
         # 解析符号链接（checkpoints/last -> 005000）：指纹里记实际检查点，“last”以后指向别的检查点时不会续写进同一结果
         cfg.policy_path = str(Path(cfg.policy_path).resolve())

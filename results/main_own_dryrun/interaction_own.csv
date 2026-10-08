@@ -1,0 +1,5 @@
+model,short,long,condition,available,n,rate_short_pert,rate_long_pert,gap_pert,rate_short_none,rate_long_none,gap_none,gap_change,ci_lo,ci_hi,reason
+own,k20,k100,push0.06,True,200,0.51,0.185,0.325,0.62,0.775,-0.155,0.48,0.37,0.59,
+own,k20,k100,delay10,True,200,0,0.475,-0.475,0.62,0.775,-0.155,-0.32,-0.42,-0.215,
+pretrained,k20,k100,push0.06,True,200,0.51,0.185,0.325,0.62,0.775,-0.155,0.48,0.37,0.59,
+pretrained,k20,k100,delay10,True,200,0,0.475,-0.475,0.62,0.775,-0.155,-0.32,-0.42,-0.215,
