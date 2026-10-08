@@ -1,0 +1,91 @@
+{
+  "ACT": [
+    {
+      "model": "ACT",
+      "short": "k20",
+      "long": "k100",
+      "condition": "push0.06",
+      "available": true,
+      "n": 200,
+      "gap_pert": 0.325,
+      "gap_none": -0.15500000000000003,
+      "gap_change": 0.48,
+      "ci_lo": 0.37,
+      "ci_hi": 0.59,
+      "rate_short_pert": 0.51,
+      "rate_long_pert": 0.185,
+      "rate_short_none": 0.62,
+      "rate_long_none": 0.775
+    },
+    {
+      "model": "ACT",
+      "short": "k20",
+      "long": "k100",
+      "condition": "noise16",
+      "available": true,
+      "n": 200,
+      "gap_pert": -0.24500000000000005,
+      "gap_none": -0.15500000000000003,
+      "gap_change": -0.09,
+      "ci_lo": -0.21,
+      "ci_hi": 0.03,
+      "rate_short_pert": 0.41,
+      "rate_long_pert": 0.655,
+      "rate_short_none": 0.62,
+      "rate_long_none": 0.775
+    },
+    {
+      "model": "ACT",
+      "short": "k20",
+      "long": "k100",
+      "condition": "delay10",
+      "available": true,
+      "n": 200,
+      "gap_pert": -0.475,
+      "gap_none": -0.15500000000000003,
+      "gap_change": -0.32,
+      "ci_lo": -0.42,
+      "ci_hi": -0.215,
+      "rate_short_pert": 0.0,
+      "rate_long_pert": 0.475,
+      "rate_short_none": 0.62,
+      "rate_long_none": 0.775
+    }
+  ],
+  "DP": [
+    {
+      "model": "DP",
+      "short": "k4",
+      "long": "k15",
+      "condition": "push60",
+      "available": true,
+      "n": 200,
+      "gap_pert": -0.35000000000000003,
+      "gap_none": -0.24,
+      "gap_change": -0.11,
+      "ci_lo": -0.245,
+      "ci_hi": 0.02,
+      "rate_short_pert": 0.19,
+      "rate_long_pert": 0.54,
+      "rate_short_none": 0.275,
+      "rate_long_none": 0.515
+    },
+    {
+      "model": "DP",
+      "short": "k4",
+      "long": "k15",
+      "condition": "delay4",
+      "available": true,
+      "n": 200,
+      "gap_pert": -0.305,
+      "gap_none": -0.24,
+      "gap_change": -0.065,
+      "ci_lo": -0.185,
+      "ci_hi": 0.055,
+      "rate_short_pert": 0.105,
+      "rate_long_pert": 0.41,
+      "rate_short_none": 0.275,
+      "rate_long_none": 0.515
+    }
+  ]
+}
