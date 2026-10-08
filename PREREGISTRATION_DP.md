@@ -19,7 +19,7 @@ Registered on 2026-10-08, **before any final-evaluation episode of this experime
 | Success | the environment's `is_success` flag at the end of the episode (column `success` of `episodes.csv`) |
 | Evaluation / perturbation code | as of commit `92027a9` (T8c). Everything added after it (the DP pilot results, this file, the seed guard, run and analysis scripts) does not change evaluation or perturbation logic |
 
-Reproducibility: for a fixed batch composition (B = 50, seeds 200000–200049, 200050–200099, …) the run was checked to give bit-identical actions to the LeRobot 0.3.3 own evaluation (T8c, check K1). The scene (initial state) is fixed by the episode seed; the diffusion sampling noise comes from the global torch RNG, which is seeded once per batch from the first seed of the batch. Two policies on the same seed therefore share the initial scene but not necessarily the sampling noise. PushT reward columns differ by ~1e-16 between reruns (floating point), which cannot change `is_success` at its threshold in practice and is not used for any test.
+Reproducibility: for a fixed batch composition (B = 50, seeds 200000–200049, 200050–200099, …) the run was checked to give bit-identical actions to the LeRobot 0.3.3 own evaluation (T8c, check K1). The scene (initial state) is fixed by the episode seed; the diffusion sampling noise comes from the global torch RNG, which is seeded once per batch from the first seed of the batch. Two policies on the same seed therefore share the initial scene but not necessarily the sampling noise. PushT reward columns differ by ~1e-16 between reruns of the same configuration (floating point; check D1: `success` was identical in all 50 compared episodes), and no test uses them.
 
 ## 3. Design: 3 values of k × 4 conditions = 12 cells
 
@@ -62,7 +62,7 @@ Primary outcome: **episode success** (binary). Two hypotheses, each a **two-side
    `gap_change_i = [ s_S(i, C) − s_L(i, C) ] − [ s_S(i, none) − s_L(i, none) ]`.
    The reported number is the mean over the seeds, with a paired bootstrap 95% CI (resample seeds, 10,000 times, RNG seed 20261007; the same resampled seeds in all four cells that enter). It equals (rate_S,C − rate_L,C) − (rate_S,none − rate_L,none). A positive value means the short k loses less (or gains more) from the perturbation than the long k does; a negative value, the opposite. **No significance test is done.**
    - **ACT** (data `results/main/`, seeds 200000–200199): S = k 20, L = k 100; C ∈ {push 0.06 m, noise σ = 16, delay 10}.
-   - **DP** (data `results/main_dp/`): S = k 4, L = k 15; C ∈ {push 60, delay 4} (delay 2 additionally listed).
+   - **DP** (data `results/main_dp/`): S = k 4, L = k 15; C ∈ {push 60, delay 4}.
    - **Status:** the DP gap change is specified here before the DP data exist but after the DP pilot. The **ACT gap change was added after the ACT data had been seen** (post hoc), so it is exploratory in the strong sense and carries no confirmatory weight. Its purpose is to separate "a short k is worse at baseline" from "a short k is more (or less) affected by the perturbation", which the raw H1/H4 comparison does not.
 
 ## 7. Basis in the pilot
