@@ -1,0 +1,34 @@
+{
+  "name": "k8__noise8",
+  "model": "dp",
+  "mode": "fixed",
+  "k": 8,
+  "batch_size": 50,
+  "seeds": "5000..5049 (n=50)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 50,
+    "n_success": 35,
+    "success_rate": 0.7,
+    "success_ci95_wilson": [
+      0.562496495355466,
+      0.8089644649911906
+    ],
+    "mean_policy_calls": 26.82,
+    "mean_smoothness": 9.458687137280302,
+    "mean_steps": 211.3,
+    "mean_steps_success": 173.28571428571428,
+    "mean_sum_reward": 92.29466457336589,
+    "mean_max_reward": 0.9546751753794157,
+    "n_capped": 0,
+    "n_batches": 1,
+    "total_batch_wall_s": 119.83829251099996,
+    "wall_s_per_episode": 2.396765850219999,
+    "mean_path_length": 1984.1565903507646,
+    "mean_jerk": 4.122016181169467,
+    "mean_reversal_rate": 0.11459282252375176,
+    "perturb_kind": "obs_noise",
+    "perturb_strength": 8.0
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}
