@@ -1,0 +1,350 @@
+{
+  "a1": {
+    "adaptive_vs_k100": {
+      "a": "results/t11_checks/a1_k100",
+      "b": "results/t11_checks/a1_adaptive_inf",
+      "n": 10,
+      "compared_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "sum_reward",
+        "max_reward",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate",
+        "perturb_kind",
+        "perturb_strength",
+        "push_step",
+        "push_angle_deg",
+        "push_status",
+        "push_clip",
+        "push_d_actual",
+        "push_redraws",
+        "cube_pre_x",
+        "cube_pre_y",
+        "cube_pre_z",
+        "cube_post_x",
+        "cube_post_y",
+        "cube_post_z"
+      ],
+      "episodes_identical": 10,
+      "differing_columns": [],
+      "full_episode_actions_identical": 10,
+      "traj_arrays_identical": {
+        "seeds": true,
+        "steps": true,
+        "alive": true,
+        "action": true,
+        "agent_pos": true,
+        "cube_pos": true
+      },
+      "success_a": 9,
+      "success_b": 9,
+      "mean_calls_a": 3.3,
+      "mean_calls_b": 29.6
+    },
+    "k100_vs_t5_reference": {
+      "a": "results/t5_checks/n1_act_none",
+      "b": "results/t11_checks/a1_k100",
+      "n": 10,
+      "compared_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "sum_reward",
+        "max_reward",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate",
+        "perturb_kind",
+        "perturb_strength",
+        "push_step",
+        "push_angle_deg",
+        "push_status",
+        "push_clip",
+        "push_d_actual",
+        "cube_pre_x",
+        "cube_pre_y",
+        "cube_pre_z",
+        "cube_post_x",
+        "cube_post_y",
+        "cube_post_z"
+      ],
+      "episodes_identical": 10,
+      "differing_columns": [],
+      "full_episode_actions_identical": 10,
+      "traj_arrays_identical": {
+        "seeds": true,
+        "steps": true,
+        "alive": true,
+        "action": true,
+        "agent_pos": true,
+        "cube_pos": true
+      },
+      "success_a": 9,
+      "success_b": 9,
+      "mean_calls_a": 3.3,
+      "mean_calls_b": 3.3
+    },
+    "adaptive_replans_diff_total": 0,
+    "pass": true
+  },
+  "a2": {
+    "m10": {
+      "run": "results/t11_checks/a2_m10",
+      "m": 10,
+      "episodes": 10,
+      "intervals": 374,
+      "intervals_not_m": 0,
+      "interval_values": [
+        10
+      ],
+      "non_diff_replans": 0,
+      "action_vs_candidate_checked": 1527,
+      "action_vs_candidate_mismatch": 0,
+      "plan_j_not_t_mod_m": 0,
+      "calls_not_1_plus_replans": 0,
+      "passed": true
+    },
+    "m20": {
+      "run": "results/t11_checks/a2_m20",
+      "m": 20,
+      "episodes": 10,
+      "intervals": 161,
+      "intervals_not_m": 0,
+      "interval_values": [
+        20
+      ],
+      "non_diff_replans": 0,
+      "action_vs_candidate_checked": 841,
+      "action_vs_candidate_mismatch": 0,
+      "plan_j_not_t_mod_m": 0,
+      "calls_not_1_plus_replans": 0,
+      "passed": true
+    },
+    "pass": true
+  },
+  "a3": {
+    "none": {
+      "p50": 0.09185793164186284,
+      "p75": 0.17844005731744306,
+      "p90": 0.29058773629069523,
+      "p95": 0.3964023994805276,
+      "p99": 0.7031930272592629,
+      "n": 552,
+      "mean": 0.13834361232182185,
+      "min": 0.01828655500545216,
+      "max": 0.8811879224572534
+    },
+    "push0_06": {
+      "p50": 0.19569590844566503,
+      "p75": 0.40063391264946374,
+      "p90": 0.6867551409401378,
+      "p95": 0.8517849142101492,
+      "p99": 1.0741891726787904,
+      "n": 696,
+      "mean": 0.2877092509977757,
+      "min": 0.02514857373077623,
+      "max": 1.2044600689668803
+    },
+    "after_push": {
+      "n_pushed": 20,
+      "push_status_counts": {
+        "pushed": 20
+      },
+      "first_check_after_push": {
+        "p50": 0.12902344241574976,
+        "p75": 0.2623141481741418,
+        "p90": 0.40972249841132624,
+        "p95": 0.49997197786551406,
+        "p99": 0.5937729635350346,
+        "n": 20,
+        "mean": 0.1978316722288478,
+        "min": 0.050142021033931214,
+        "max": 0.617223209952415
+      },
+      "checks_before_push": {
+        "p50": 0.12233204475473425,
+        "p75": 0.1940037480264926,
+        "p90": 0.23911857918778615,
+        "p95": 0.25381971445241575,
+        "p99": 0.32929934342504097,
+        "n": 120,
+        "mean": 0.1324089935704887,
+        "min": 0.02514857373077623,
+        "max": 0.3451346697872112
+      },
+      "n_paired": 20,
+      "paired": [
+        {
+          "seed": 0,
+          "push_step": 27,
+          "t": 30,
+          "push": 0.15809765070805315,
+          "none": 0.15081982440764125
+        },
+        {
+          "seed": 1,
+          "push_step": 72,
+          "t": 80,
+          "push": 0.08757747077996834,
+          "none": 0.03495305944278067
+        },
+        {
+          "seed": 2,
+          "push_step": 70,
+          "t": 80,
+          "push": 0.17387520320712738,
+          "none": 0.0630634675018468
+        },
+        {
+          "seed": 3,
+          "push_step": 54,
+          "t": 60,
+          "push": 0.09444311878707998,
+          "none": 0.04461100425968921
+        },
+        {
+          "seed": 4,
+          "push_step": 47,
+          "t": 50,
+          "push": 0.4003804581917783,
+          "none": 0.13141100889436316
+        },
+        {
+          "seed": 5,
+          "push_step": 37,
+          "t": 40,
+          "push": 0.36721666851325,
+          "none": 0.16107070055862655
+        },
+        {
+          "seed": 6,
+          "push_step": 45,
+          "t": 50,
+          "push": 0.14203152342877864,
+          "none": 0.11807958313951909
+        },
+        {
+          "seed": 7,
+          "push_step": 77,
+          "t": 80,
+          "push": 0.09853584359555813,
+          "none": 0.04657810000488656
+        },
+        {
+          "seed": 8,
+          "push_step": 68,
+          "t": 70,
+          "push": 0.0726346714796435,
+          "none": 0.04200454780469989
+        },
+        {
+          "seed": 9,
+          "push_step": 39,
+          "t": 40,
+          "push": 0.617223209952415,
+          "none": 0.398740176122991
+        },
+        {
+          "seed": 10,
+          "push_step": 65,
+          "t": 70,
+          "push": 0.11826261168608784,
+          "none": 0.045002174890925124
+        },
+        {
+          "seed": 11,
+          "push_step": 74,
+          "t": 80,
+          "push": 0.1397842731454117,
+          "none": 0.05343937691229637
+        },
+        {
+          "seed": 12,
+          "push_step": 83,
+          "t": 90,
+          "push": 0.11073245643140683,
+          "none": 0.06880599153296173
+        },
+        {
+          "seed": 13,
+          "push_step": 23,
+          "t": 30,
+          "push": 0.39011378627370785,
+          "none": 0.2609839562240871
+        },
+        {
+          "seed": 14,
+          "push_step": 85,
+          "t": 90,
+          "push": 0.09119409675548139,
+          "none": 0.04309360895355191
+        },
+        {
+          "seed": 15,
+          "push_step": 100,
+          "t": 110,
+          "push": 0.050142021033931214,
+          "none": 0.07353639630784553
+        },
+        {
+          "seed": 16,
+          "push_step": 76,
+          "t": 80,
+          "push": 0.0692976482484601,
+          "none": 0.0349565998401435
+        },
+        {
+          "seed": 17,
+          "push_step": 100,
+          "t": 110,
+          "push": 0.227346641394439,
+          "none": 0.23119396358271302
+        },
+        {
+          "seed": 18,
+          "push_step": 86,
+          "t": 90,
+          "push": 0.493800860387256,
+          "none": 0.060507805671117784
+        },
+        {
+          "seed": 19,
+          "push_step": 88,
+          "t": 90,
+          "push": 0.05394323057712182,
+          "none": 0.030750780514387753
+        }
+      ],
+      "paired_push_gt_none": 18,
+      "paired_median_push": 0.12902344241574976,
+      "paired_median_none": 0.06178563658648229,
+      "paired_median_ratio": 2.0489441275611906,
+      "first_after_above_none_p95": 3,
+      "first_after_above_none_p99": 0
+    },
+    "tau_candidates": [
+      0.0919,
+      0.1784,
+      0.2906,
+      0.3964,
+      0.7032
+    ]
+  }
+}

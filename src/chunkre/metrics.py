@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .adaptive import ADAPTIVE_COLUMNS
 from .perturb import PERTURB_COLUMNS, PUSH_STATUS
 
 # 逐回合 CSV 的列（顺序固定）。TIME_COLUMNS 是墙钟类列，复现性比较时排除。
@@ -149,6 +150,11 @@ def summarize_rows(rows: list[dict]) -> dict:
                 pert["n_push_clipped"] = sum(1 for r in rows if r.get("push_clip"))
                 pushed = [_f(r["push_d_actual"]) for r in rows if r.get("push_status") == "pushed"]
                 pert["mean_push_d_actual"] = float(np.mean(pushed)) if pushed else float("nan")
+    # T11a adaptive：只有 CSV 有这些列（mode=adaptive）时才汇总（其他模式的 summary 键不变）
+    adapt = {}
+    if n and all(c in r for r in rows for c in ADAPTIVE_COLUMNS):
+        for c in ADAPTIVE_COLUMNS:
+            adapt[f"mean_{c}"] = mean(np.array([_f(r[c]) for r in rows]))
     return {
         "n_episodes": n,
         "n_success": n_success,
@@ -166,6 +172,7 @@ def summarize_rows(rows: list[dict]) -> dict:
         "wall_s_per_episode": total_wall / n if n else float("nan"),
         **motion,
         **pert,
+        **adapt,
     }
 
 

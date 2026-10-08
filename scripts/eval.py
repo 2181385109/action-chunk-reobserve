@@ -8,6 +8,7 @@
   python scripts/eval.py --config configs/act_default.yaml --out results/x --perturb obs_noise --perturb-strength 8   # T5
   python scripts/eval.py --config configs/dp_default.yaml --out results/x --perturb action_delay --perturb-strength 2  # T5
   python scripts/eval.py --config configs/act_default.yaml --out results/x --policy-path /root/train_out/act_own/checkpoints/last/pretrained_model  # T10a 自训练
+  python scripts/eval.py --config configs/act_default.yaml --out results/x --mode adaptive --adapt-m 10 --adapt-tau 0.05  # T11a 自适应（只 ACT）
 
 命令行参数覆盖 YAML 里的同名字段。输出（CLAUDE.md §6）：
   <out>/config.json   配置 + 策略实际参数 + 实际 GL_RENDERER + 版本
@@ -35,7 +36,7 @@ def main(argv=None):
     ap.add_argument("--out", required=True, help="输出目录（相对仓库根或绝对路径）")
     ap.add_argument("--model", choices=["act", "dp"])
     ap.add_argument("--k", type=int, help="执行长度 k（不传 = 模型默认：ACT 100 / DP 8）")
-    ap.add_argument("--mode", choices=["fixed", "te"])
+    ap.add_argument("--mode", choices=["fixed", "te", "adaptive"])
     ap.add_argument("--seeds", help="例如 0-9 或 1000-1499 或 0,1,2")
     ap.add_argument("--batch-size", type=int, dest="batch_size", help="同时运行的环境数 B")
     ap.add_argument("--max-steps", type=int, dest="max_steps", help="只用于检查：每回合最多步数")
@@ -56,11 +57,16 @@ def main(argv=None):
                     help="扰动强度（push：推开距离，米；obs_noise：噪声标准差 σ，0–255 像素值；action_delay：延迟步数 d，整数）")
     ap.add_argument("--perturb-param", action="append", dest="perturb_params", metavar="KEY=VALUE",
                     help="扰动参数，可重复，如 --perturb-param t_lo=20 --perturb-param t_hi=100")
+    ap.add_argument("--adapt-m", type=int, dest="adapt_m", help="T11a adaptive：每过 m 步比较一次候选块")
+    ap.add_argument("--adapt-tau", dest="adapt_tau", help="T11a adaptive：差异阈值（弧度；inf = 永远不触发）")
+    ap.add_argument("--adapt-min-gap", type=int, dest="adapt_min_gap", help="T11a adaptive：两次换计划的最小间隔（默认 20）")
+    ap.add_argument("--adapt-h-cmp", type=int, dest="adapt_h_cmp", help="T11a adaptive：比较前几个动作（默认 20）")
     a = ap.parse_args(argv)
     overrides = {k: getattr(a, k) for k in ["model", "k", "mode", "seeds", "batch_size", "max_steps", "name",
                                              "device", "policy_path", "allow_cpu_render", "deterministic", "log_traj",
                                              "save_frames", "frame_every", "perturb_kind", "perturb_strength"]}
     overrides["perturb_params"] = parse_param_kv(a.perturb_params)
+    overrides["adaptive_params"] = dict(m=a.adapt_m, tau=a.adapt_tau, min_gap=a.adapt_min_gap, h_cmp=a.adapt_h_cmp)
     cfg = load_config(a.config, overrides)
     if not cfg.name:
         cfg.name = Path(a.out).name

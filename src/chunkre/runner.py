@@ -27,6 +27,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from .adaptive import ADAPTIVE_COLUMNS, AdaptiveController
 from .config import MODELS, TE_COEFF, EvalConfig, check_local_policy_dir, validate_k
 from .metrics import EPISODE_COLUMNS, csv_columns, motion_metrics, summarize_csv
 from .perturb import Perturbation, make_perturbation
@@ -212,7 +213,8 @@ def check_renderer(model: str, renderer: str, allow_cpu_render: bool) -> None:
 def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
               max_steps: int | None = None, after_reset=None,
               recorder: TrajRecorder | None = None,
-              perturb: Perturbation | None = None) -> tuple[list[dict], dict]:
+              perturb: Perturbation | None = None,
+              adaptive: AdaptiveController | None = None) -> tuple[list[dict], dict]:
     """用 len(seeds) 个环境同时跑一批回合。返回 (逐回合统计列表, 批统计)。
 
     逐回合统计：
@@ -227,6 +229,9 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
     recorder：轨迹记录 / 画面导出（chunkre.traj），只读观测、动作和物理状态，不影响结果。
     perturb：扰动（chunkre.perturb）。第 t 步顺序：obs -> on_obs -> 策略 -> on_action -> 记录 -> on_state -> env.step。
       None 或 kind=none 时三个钩子都是原样返回。逐回合扰动记录合并进返回的逐回合统计（PERTURB_COLUMNS）。
+    adaptive：T11a 自适应重新观察（chunkre.adaptive）。不为 None 时不调用 policy.select_action，改为在我们这边管理
+      动作计划：本步有环境需要时对整批调用一次 policy.predict_action_chunk（经 CallCounter 计数），再由控制器选动作；
+      n_policy_calls 按环境各自计（只计需要的环境），逐回合 ADAPTIVE_COLUMNS 合并进返回的逐回合统计。
     """
     from lerobot.envs.utils import add_envs_task, preprocess_observation
 
@@ -270,14 +275,23 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
         n0 = counter.n
         _sync()
         ta = time.perf_counter()
-        with torch.inference_mode():
-            action = policy.select_action(o)
-        action = action.to("cpu").numpy()
+        if adaptive is None:
+            with torch.inference_mode():
+                action = policy.select_action(o)
+            action = action.to("cpu").numpy()
+        else:
+            chunks = None
+            if adaptive.need_predict(alive).any():
+                with torch.inference_mode():
+                    chunks = policy.predict_action_chunk(o).to("cpu").numpy()
+            action = adaptive.step(step, alive, chunks)
         t_pol += time.perf_counter() - ta
         assert action.ndim == 2, "动作应为 (batch, action_dim)"
         policy_action = action
         action = pert.on_action(step, action, alive)
-        if counter.n > n0:
+        if adaptive is not None:
+            calls[alive] += adaptive.called[alive]
+        elif counter.n > n0:
             calls[alive] += counter.n - n0
         if prev_action is not None:
             d = np.linalg.norm(action.astype(np.float64) - prev_action, axis=1)
@@ -331,6 +345,7 @@ def run_batch(env, policy, counter: CallCounter, seeds: list[int], device: str,
             sum_reward=float(sum_r[i]), max_reward=float(max_r[i]),
             n_policy_calls=int(calls[i]), smoothness=float(smooth[i]), wall_s=float(ep_wall[i]),
             **motion_metrics(acts), **pert.episode_info(i),
+            **(adaptive.episode_info(i) if adaptive is not None else {}),
         ))
     batch = dict(batch_wall_s=batch_wall, batch_policy_s=t_pol, batch_env_s=t_env, n_loop_steps=step)
     return eps, batch
@@ -395,6 +410,8 @@ def _fingerprint(cfg: EvalConfig) -> dict:
         d.pop("perturb", None)
     if cfg.policy_path is None:     # hub 模型：指纹与 T10a 之前写出的 config.json 相同
         d.pop("policy_path", None)
+    if not cfg.adaptive:            # 非 adaptive：指纹与 T11a 之前写出的 config.json 相同
+        d.pop("adaptive", None)
     return d
 
 
@@ -428,14 +445,18 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
     perturb = make_perturbation(cfg.perturb, cfg.model)
 
     # 续跑 T2 写出的旧格式 CSV（没有 T3 运动指标列）时沿用旧表头，新批次也按旧表头写（运动指标不写）
-    columns = csv_columns(csv_path) or EPISODE_COLUMNS
-    unknown = set(columns) - set(EPISODE_COLUMNS)
+    is_adaptive = cfg.mode == "adaptive"
+    columns = csv_columns(csv_path) or (EPISODE_COLUMNS + ADAPTIVE_COLUMNS if is_adaptive else EPISODE_COLUMNS)
+    unknown = set(columns) - set(EPISODE_COLUMNS) - (set(ADAPTIVE_COLUMNS) if is_adaptive else set())
     if unknown:
         raise RuntimeError(f"{csv_path} 的表头有未知列 {sorted(unknown)}，拒绝续跑。")
+    if is_adaptive and not set(ADAPTIVE_COLUMNS) <= set(columns):
+        raise RuntimeError(f"{csv_path} 没有 adaptive 列 {ADAPTIVE_COLUMNS}，拒绝续跑。")
 
     batches = cfg.batches()
     todo = [b for b in range(len(batches)) if b not in done_batches]
     log(f"[{cfg.name or cfg.model}] model={cfg.model} mode={cfg.mode} k={cfg.k_effective} B={cfg.batch_size} "
+        + (f"adaptive={cfg.adaptive} " if is_adaptive else "") +
         f"扰动={perturb.kind}:{perturb.strength:g} 批次 {len(batches)}，已完成 {len(done_batches)}，待跑 {len(todo)}")
     if cfg.perturb_active and not set(c for c in columns if c.startswith("perturb_")):
         raise RuntimeError(f"{csv_path} 是旧格式（没有扰动列），不能写扰动结果。")
@@ -479,10 +500,16 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
                 if new_file:
                     w.writeheader()
                 for j, b in enumerate(todo):
+                    # adaptive：各环境的计划位置不同步，轨迹的 chunk_idx 记 -1（各环境的计划下标见 adaptive/*.npz 的 plan_j）
                     rec = TrajRecorder(out_dir, b, batches[b], cfg.log_traj, cfg.save_frames, cfg.frame_every,
-                                       te=cfg.mode == "te")
+                                       te=cfg.mode in ("te", "adaptive"))
+                    ctrl = (AdaptiveController(len(batches[b]), cfg.adaptive, pinfo["chunk_size"])
+                            if is_adaptive else None)
                     eps, bstat = run_batch(env, policy, counter, batches[b], cfg.device, cfg.max_steps,
-                                           after_reset=after_reset, recorder=rec, perturb=perturb)
+                                           after_reset=after_reset, recorder=rec, perturb=perturb, adaptive=ctrl)
+                    if ctrl is not None:   # 先写 npz 再写 CSV 行：CSV 里完整的批次一定有对应的 npz（续跑重跑时覆盖）
+                        ctrl.write_npz(out_dir / "adaptive" / f"batch_{b:04d}.npz", batches[b],
+                                       [e["steps"] for e in eps])
                     for e in eps:
                         w.writerow(dict(e, batch_idx=b, model=cfg.model, mode=cfg.mode, k=cfg.k_effective,
                                         batch_wall_s=bstat["batch_wall_s"],

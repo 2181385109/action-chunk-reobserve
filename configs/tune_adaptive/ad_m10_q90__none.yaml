@@ -1,0 +1,11 @@
+# T11a 自适应阈值试跑格子 ad_m10_q90__none（由 scripts/tune_adaptive_tools.py gen 生成，不要手改）
+name: ad_m10_q90__none
+model: act
+seeds: 6000-6049
+batch_size: 10
+mode: adaptive
+adaptive:
+  m: 10
+  tau: 0.2906   # q90
+  h_cmp: 20
+  min_gap: 20

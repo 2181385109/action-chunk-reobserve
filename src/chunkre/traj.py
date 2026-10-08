@@ -9,8 +9,10 @@
   action (T, B, A) float32           第 t 步实际发给环境的动作（环境单位）
   policy_action (T, B, A) float32    只有开了改动作的扰动（T5 action_delay，d>0）：第 t 步策略给出的动作（on_action 之前）
   agent_pos (T, B, A') float32       第 t 步策略看到的观测里的 agent_pos（aloha：14 维关节位置，夹爪为归一化开合度）
-  repredict (T,) bool                第 t 步策略是否重新预测了动作块（同一批所有环境同时）
-  chunk_idx (T,) int16               第 t 步执行的是当前动作块里的第几个动作（0 起）；te 模式为 -1（多块加权平均）
+  repredict (T,) bool                第 t 步策略是否重新预测了动作块（同一批所有环境同时）；
+                                     adaptive 模式（T11a）= 这一步调用了策略（候选块，不一定换计划）
+  chunk_idx (T,) int16               第 t 步执行的是当前动作块里的第几个动作（0 起）；te 模式为 -1（多块加权平均）；
+                                     adaptive 模式为 -1（各环境计划不同步，见 <out>/adaptive/batch_*.npz 的 plan_j）
   chunk_offsets (J,) int16           下面 chunk_sel 记录的块内位置（0 起）
   chunk_sel (T, B, J, A) float32     重新预测那一步，新动作块在 chunk_offsets 位置上的动作；其他步为 nan
                                      （动作块 = predict_action_chunk 的输出：ACT 为完整 100 步；DP 为将要执行的 k 步）

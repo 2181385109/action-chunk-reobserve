@@ -10,6 +10,7 @@
 模式：
 - fixed：固定 k。
 - te：ACT 的时间集成（temporal_ensemble_coeff=0.01，LeRobot 要求 n_action_steps=1，每步都重新预测）。
+- adaptive（T11a，只 ACT）：自适应重新观察规则（chunkre.adaptive），参数在 EvalConfig.adaptive；k = chunk_size（100）。
 """
 from __future__ import annotations
 
@@ -23,7 +24,7 @@ MODELS = {
     "dp": dict(repo="lerobot/diffusion_pusht", env_type="pusht", env_kwargs=dict(), default_k=8),
 }
 POLICY_TYPES = {"act": "act", "dp": "diffusion"}   # policy config.json 的 "type"（本地检查点用来核对模型）
-MODES = ("fixed", "te")
+MODES = ("fixed", "te", "adaptive")
 TE_COEFF = 0.01
 
 
@@ -64,6 +65,12 @@ def validate_k(model: str, mode: str, k: int, pcfg) -> None:
             raise ValueError("te（时间集成）只适用于 ACT")
         if k != 1:
             raise ValueError(f"te 模式要求 k=1（LeRobot 的时间集成要求 n_action_steps=1），收到 k={k}")
+        return
+    if mode == "adaptive":
+        if model != "act":
+            raise ValueError("adaptive（自适应重新观察）只适用于 ACT")
+        if int(k) != k_upper_bound(model, pcfg):
+            raise ValueError(f"adaptive 模式的计划长度 k 必须等于 chunk_size={k_upper_bound(model, pcfg)}，收到 k={k}")
         return
     ub = k_upper_bound(model, pcfg)
     if not (1 <= int(k) <= ub):
@@ -110,6 +117,9 @@ class EvalConfig:
     # T10a：从本地检查点加载策略（lerobot 训练输出的 .../checkpoints/<步>/pretrained_model 目录）；
     # None = hub 预训练模型 MODELS[model]["repo"]（None 时不进续跑指纹，旧结果照常续跑）
     policy_path: str | None = None
+    # T11a：mode=adaptive 的参数 {m, tau, h_cmp, min_gap}（chunkre.adaptive.normalize_params）；其他模式必须为空
+    # （空时不进续跑指纹，旧结果照常续跑）
+    adaptive: dict = field(default_factory=dict)
 
     def __post_init__(self):
         if self.model not in MODELS:
@@ -117,6 +127,16 @@ class EvalConfig:
         if self.mode not in MODES:
             raise ValueError(f"mode 必须是 {MODES} 之一，收到 {self.mode!r}")
         self.seeds = parse_seeds(self.seeds)
+        if self.mode == "adaptive":
+            from .adaptive import normalize_params
+
+            if self.model != "act":
+                raise ValueError("mode=adaptive 只支持 ACT")
+            self.adaptive = normalize_params(self.adaptive)
+        elif self.adaptive:
+            raise ValueError(f"只有 mode=adaptive 才能给 adaptive 参数（mode={self.mode!r}）")
+        else:
+            self.adaptive = {}
         if self.batch_size < 1:
             raise ValueError("batch_size 必须 >= 1")
         if len(self.seeds) == 0 or len(self.seeds) % self.batch_size != 0:
@@ -189,6 +209,9 @@ def load_config(path=None, overrides: dict | None = None) -> EvalConfig:
     pk, ps, pp = (overrides.pop(x, None) for x in ("perturb_kind", "perturb_strength", "perturb_params"))
     if pk is not None or ps is not None or pp:
         d["perturb"] = merge_perturb(d.get("perturb"), pk, ps, pp)
+    ap = {k: v for k, v in (overrides.pop("adaptive_params", None) or {}).items() if v is not None}
+    if ap:
+        d["adaptive"] = dict(d.get("adaptive") or {}, **ap)
     for key, val in overrides.items():
         if val is not None:
             d[key] = val

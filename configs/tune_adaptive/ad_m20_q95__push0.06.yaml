@@ -1,0 +1,17 @@
+# T11a 自适应阈值试跑格子 ad_m20_q95__push0.06（由 scripts/tune_adaptive_tools.py gen 生成，不要手改）
+name: ad_m20_q95__push0.06
+model: act
+seeds: 6000-6049
+batch_size: 10
+mode: adaptive
+adaptive:
+  m: 20
+  tau: 0.3964   # q95
+  h_cmp: 20
+  min_gap: 20
+perturb:
+  kind: push
+  strength: 0.06
+  params:
+    t_lo: 20
+    t_hi: 100
