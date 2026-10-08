@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from chunkre import main_grid as mg  # noqa: E402
 from chunkre.config import parse_seeds  # noqa: E402
 from chunkre.metrics import read_episodes, wilson_ci  # noqa: E402
+from chunkre.plotting import yerr_from_ci  # noqa: E402
 from chunkre.stats import (ALPHA, BOOT_SEED, N_BOOT, bootstrap_mean_ci, classify, holm_adjust,  # noqa: E402
                            mcnemar_exact, pair_counts, paired_bootstrap_diff)
 
@@ -266,7 +267,7 @@ def plot_figures(hyp, table, out_dir: Path, seeds_label: str, dry_run: bool) -> 
             if not pts:
                 continue
             px, py, lo, hi = (np.array([q[j] for q in pts]) for j in range(4))
-            ax.errorbar(px, py, yerr=[py - lo, hi - py], color=col, marker=mk, ls=ls, lw=1.6, ms=5, capsize=2,
+            ax.errorbar(px, py, yerr=yerr_from_ci(py, lo, hi), color=col, marker=mk, ls=ls, lw=1.6, ms=5, capsize=2,
                         elinewidth=0.9, label=POLICY_LABEL[pol])
         ax.set_xticks(xs)
         ax.set_xticklabels([f"{x:g}" for x in xs])

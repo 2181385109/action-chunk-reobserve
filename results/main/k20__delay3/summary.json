@@ -1,0 +1,34 @@
+{
+  "name": "k20__delay3",
+  "model": "act",
+  "mode": "fixed",
+  "k": 20,
+  "batch_size": 10,
+  "seeds": "200000..200199 (n=200)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 200,
+    "n_success": 32,
+    "success_rate": 0.16,
+    "success_ci95_wilson": [
+      0.1156741203158702,
+      0.21714070162067106
+    ],
+    "mean_policy_calls": 19.865,
+    "mean_smoothness": 0.024998404420107145,
+    "mean_steps": 395.8,
+    "mean_steps_success": 373.75,
+    "mean_sum_reward": 138.945,
+    "mean_max_reward": 1.93,
+    "n_capped": 0,
+    "n_batches": 20,
+    "total_batch_wall_s": 998.4534913839598,
+    "wall_s_per_episode": 4.992267456919799,
+    "mean_path_length": 9.85959495264142,
+    "mean_jerk": 0.025451979746171666,
+    "mean_reversal_rate": 0.3501545021113545,
+    "perturb_kind": "action_delay",
+    "perturb_strength": 3.0
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}
