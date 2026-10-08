@@ -1,0 +1,128 @@
+{
+  "workers": 0,
+  "steps": 1000,
+  "returncode": 0,
+  "wall_s": 244.6,
+  "startup_s_to_first_log": 8.2,
+  "steady": {
+    "from_step": 200,
+    "to_step": 1000,
+    "seconds": 186.8,
+    "steps_per_s": 4.283
+  },
+  "mean_updt_s": 0.1705,
+  "mean_data_s": 0.0623,
+  "wsl_used_before_GB": 1.61,
+  "wsl_used_peak_GB": 3.36,
+  "wsl_total_GB": 9.71,
+  "train_tree_rss_peak_GB": 2.18,
+  "gpu_used_before_MiB": 1264,
+  "gpu_used_peak_MiB": 4389,
+  "gpu_train_peak_MiB": 3125,
+  "n_samples": 446,
+  "losses": [
+    [
+      50,
+      15.989
+    ],
+    [
+      100,
+      5.344
+    ],
+    [
+      150,
+      4.29
+    ],
+    [
+      200,
+      3.7
+    ],
+    [
+      250,
+      3.427
+    ],
+    [
+      300,
+      3.198
+    ],
+    [
+      350,
+      3.053
+    ],
+    [
+      400,
+      2.864
+    ],
+    [
+      450,
+      2.79
+    ],
+    [
+      500,
+      2.597
+    ],
+    [
+      550,
+      2.494
+    ],
+    [
+      600,
+      2.442
+    ],
+    [
+      650,
+      2.32
+    ],
+    [
+      700,
+      2.243
+    ],
+    [
+      750,
+      2.156
+    ],
+    [
+      800,
+      2.093
+    ],
+    [
+      850,
+      2.12
+    ],
+    [
+      900,
+      2.053
+    ],
+    [
+      950,
+      1.96
+    ],
+    [
+      1000,
+      1.911
+    ]
+  ],
+  "cmd": [
+    "/root/venvs/chunk-reobserve/bin/python",
+    "-m",
+    "lerobot.scripts.train",
+    "--policy.type=act",
+    "--policy.device=cuda",
+    "--policy.use_amp=false",
+    "--policy.push_to_hub=false",
+    "--dataset.repo_id=lerobot/aloha_sim_transfer_cube_human",
+    "--dataset.video_backend=torchcodec",
+    "--env.type=aloha",
+    "--env.task=AlohaTransferCube-v0",
+    "--seed=1000",
+    "--batch_size=8",
+    "--steps=1000",
+    "--num_workers=0",
+    "--save_freq=100000",
+    "--log_freq=50",
+    "--eval_freq=0",
+    "--wandb.enable=false",
+    "--job_name=aloha_act_own",
+    "--output_dir=/root/train_out/bench_w0"
+  ]
+}

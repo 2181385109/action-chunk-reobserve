@@ -1,0 +1,142 @@
+INFO 2026-10-08 17:51:18 ts/train.py:111 {'batch_size': 8,
+ 'dataset': {'episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'lerobot/aloha_sim_transfer_cube_human',
+             'revision': None,
+             'root': None,
+             'use_imagenet_stats': True,
+             'video_backend': 'torchcodec'},
+ 'env': {'episode_length': 400,
+         'features': {'action': {'shape': [14],
+                                 'type': <FeatureType.ACTION: 'ACTION'>},
+                      'agent_pos': {'shape': [14],
+                                    'type': <FeatureType.STATE: 'STATE'>},
+                      'pixels/top': {'shape': [480, 640, 3],
+                                     'type': <FeatureType.VISUAL: 'VISUAL'>}},
+         'features_map': {'action': 'action',
+                          'agent_pos': 'observation.state',
+                          'pixels/top': 'observation.images.top',
+                          'top': 'observation.image.top'},
+         'fps': 50,
+         'obs_type': 'pixels_agent_pos',
+         'render_mode': 'rgb_array',
+         'task': 'AlohaTransferCube-v0',
+         'type': 'aloha'},
+ 'eval': {'batch_size': 50, 'n_episodes': 50, 'use_async_envs': False},
+ 'eval_freq': 0,
+ 'job_name': 'aloha_act_own',
+ 'log_freq': 50,
+ 'num_workers': 8,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 10.0,
+               'lr': 1e-05,
+               'type': 'adamw',
+               'weight_decay': 0.0001},
+ 'output_dir': '/root/train_out/bench_w8',
+ 'policy': {'chunk_size': 100,
+            'device': 'cuda',
+            'dim_feedforward': 3200,
+            'dim_model': 512,
+            'dropout': 0.1,
+            'feedforward_activation': 'relu',
+            'input_features': {},
+            'kl_weight': 10.0,
+            'latent_dim': 32,
+            'license': None,
+            'n_action_steps': 100,
+            'n_decoder_layers': 1,
+            'n_encoder_layers': 4,
+            'n_heads': 8,
+            'n_obs_steps': 1,
+            'n_vae_encoder_layers': 4,
+            'normalization_mapping': {'ACTION': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'STATE': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'VISUAL': <NormalizationMode.MEAN_STD: 'MEAN_STD'>},
+            'optimizer_lr': 1e-05,
+            'optimizer_lr_backbone': 1e-05,
+            'optimizer_weight_decay': 0.0001,
+            'output_features': {},
+            'pre_norm': False,
+            'pretrained_backbone_weights': 'ResNet18_Weights.IMAGENET1K_V1',
+            'private': None,
+            'push_to_hub': False,
+            'replace_final_stride_with_dilation': False,
+            'repo_id': None,
+            'tags': None,
+            'temporal_ensemble_coeff': None,
+            'type': 'act',
+            'use_amp': False,
+            'use_vae': True,
+            'vision_backbone': 'resnet18'},
+ 'resume': False,
+ 'save_checkpoint': True,
+ 'save_freq': 100000,
+ 'scheduler': None,
+ 'seed': 1000,
+ 'steps': 1000,
+ 'use_policy_training_preset': True,
+ 'wandb': {'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'run_id': None}}
+INFO 2026-10-08 17:51:18 ts/train.py:117 Logs will be saved locally.
+INFO 2026-10-08 17:51:18 ts/train.py:127 Creating dataset
+INFO 2026-10-08 17:51:19 _client.py:1025 HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/parquet/parquet.py "HTTP/1.1 404 Not Found"
+INFO 2026-10-08 17:51:20 ts/train.py:138 Creating policy
+INFO 2026-10-08 17:51:20 ts/train.py:144 Creating optimizer and scheduler
+INFO 2026-10-08 17:51:20 ts/train.py:156 Output dir: /root/train_out/bench_w8
+INFO 2026-10-08 17:51:20 ts/train.py:158 cfg.env.task='AlohaTransferCube-v0'
+INFO 2026-10-08 17:51:20 ts/train.py:159 cfg.steps=1000 (1K)
+INFO 2026-10-08 17:51:20 ts/train.py:160 dataset.num_frames=20000 (20K)
+INFO 2026-10-08 17:51:20 ts/train.py:161 dataset.num_episodes=50
+INFO 2026-10-08 17:51:20 ts/train.py:162 num_learnable_params=51613582 (52M)
+INFO 2026-10-08 17:51:20 ts/train.py:163 num_total_params=51613672 (52M)
+INFO 2026-10-08 17:51:20 ts/train.py:202 Start offline training on a fixed dataset
+INFO 2026-10-08 17:51:33 ts/train.py:232 step:50 smpl:400 ep:1 epch:0.02 loss:15.990 grdn:288.764 lr:1.0e-05 updt_s:0.224 data_s:0.021
+INFO 2026-10-08 17:51:41 ts/train.py:232 step:100 smpl:800 ep:2 epch:0.04 loss:5.344 grdn:132.418 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:51:50 ts/train.py:232 step:150 smpl:1K ep:3 epch:0.06 loss:4.289 grdn:112.749 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:51:58 ts/train.py:232 step:200 smpl:2K ep:4 epch:0.08 loss:3.700 grdn:98.046 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:52:07 ts/train.py:232 step:250 smpl:2K ep:5 epch:0.10 loss:3.427 grdn:92.036 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:52:15 ts/train.py:232 step:300 smpl:2K ep:6 epch:0.12 loss:3.197 grdn:87.184 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:52:24 ts/train.py:232 step:350 smpl:3K ep:7 epch:0.14 loss:3.052 grdn:84.808 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:52:33 ts/train.py:232 step:400 smpl:3K ep:8 epch:0.16 loss:2.865 grdn:79.039 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:52:41 ts/train.py:232 step:450 smpl:4K ep:9 epch:0.18 loss:2.791 grdn:77.528 lr:1.0e-05 updt_s:0.171 data_s:0.000
+INFO 2026-10-08 17:52:50 ts/train.py:232 step:500 smpl:4K ep:10 epch:0.20 loss:2.599 grdn:73.562 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:52:58 ts/train.py:232 step:550 smpl:4K ep:11 epch:0.22 loss:2.495 grdn:75.397 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:53:07 ts/train.py:232 step:600 smpl:5K ep:12 epch:0.24 loss:2.442 grdn:73.798 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:53:15 ts/train.py:232 step:650 smpl:5K ep:13 epch:0.26 loss:2.319 grdn:71.167 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:53:24 ts/train.py:232 step:700 smpl:6K ep:14 epch:0.28 loss:2.241 grdn:69.449 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:53:33 ts/train.py:232 step:750 smpl:6K ep:15 epch:0.30 loss:2.156 grdn:68.019 lr:1.0e-05 updt_s:0.172 data_s:0.000
+INFO 2026-10-08 17:53:41 ts/train.py:232 step:800 smpl:6K ep:16 epch:0.32 loss:2.094 grdn:67.219 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:53:50 ts/train.py:232 step:850 smpl:7K ep:17 epch:0.34 loss:2.120 grdn:67.935 lr:1.0e-05 updt_s:0.172 data_s:0.001
+INFO 2026-10-08 17:53:58 ts/train.py:232 step:900 smpl:7K ep:18 epch:0.36 loss:2.053 grdn:67.871 lr:1.0e-05 updt_s:0.171 data_s:0.000
+INFO 2026-10-08 17:54:07 ts/train.py:232 step:950 smpl:8K ep:19 epch:0.38 loss:1.961 grdn:64.595 lr:1.0e-05 updt_s:0.171 data_s:0.000
+INFO 2026-10-08 17:54:16 ts/train.py:232 step:1K smpl:8K ep:20 epch:0.40 loss:1.910 grdn:63.926 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:54:16 ts/train.py:241 Checkpoint policy after step 1000
+INFO 2026-10-08 17:54:19 ts/train.py:283 End of training

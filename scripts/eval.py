@@ -7,6 +7,7 @@
   python scripts/eval.py --config configs/act_push.yaml --out results/x --perturb-strength 0.10   # T4 推方块
   python scripts/eval.py --config configs/act_default.yaml --out results/x --perturb obs_noise --perturb-strength 8   # T5
   python scripts/eval.py --config configs/dp_default.yaml --out results/x --perturb action_delay --perturb-strength 2  # T5
+  python scripts/eval.py --config configs/act_default.yaml --out results/x --policy-path /root/train_out/act_own/checkpoints/last/pretrained_model  # T10a 自训练
 
 命令行参数覆盖 YAML 里的同名字段。输出（CLAUDE.md §6）：
   <out>/config.json   配置 + 策略实际参数 + 实际 GL_RENDERER + 版本
@@ -40,6 +41,9 @@ def main(argv=None):
     ap.add_argument("--max-steps", type=int, dest="max_steps", help="只用于检查：每回合最多步数")
     ap.add_argument("--name")
     ap.add_argument("--device")
+    ap.add_argument("--policy-path", dest="policy_path",
+                    help="T10a：从本地检查点加载策略（WSL 路径，如 /root/train_out/act_own/checkpoints/last/pretrained_model）；"
+                         "不传 = hub 预训练模型")
     ap.add_argument("--allow-cpu-render", action="store_true", default=None, dest="allow_cpu_render")
     ap.add_argument("--no-deterministic", action="store_false", default=None, dest="deterministic")
     ap.add_argument("--log-traj", action="store_true", default=None, dest="log_traj",
@@ -54,7 +58,7 @@ def main(argv=None):
                     help="扰动参数，可重复，如 --perturb-param t_lo=20 --perturb-param t_hi=100")
     a = ap.parse_args(argv)
     overrides = {k: getattr(a, k) for k in ["model", "k", "mode", "seeds", "batch_size", "max_steps", "name",
-                                             "device", "allow_cpu_render", "deterministic", "log_traj",
+                                             "device", "policy_path", "allow_cpu_render", "deterministic", "log_traj",
                                              "save_frames", "frame_every", "perturb_kind", "perturb_strength"]}
     overrides["perturb_params"] = parse_param_kv(a.perturb_params)
     cfg = load_config(a.config, overrides)

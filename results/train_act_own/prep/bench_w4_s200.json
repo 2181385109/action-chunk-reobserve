@@ -1,0 +1,88 @@
+{
+  "workers": 4,
+  "steps": 200,
+  "returncode": 0,
+  "wall_s": 45.3,
+  "startup_s_to_first_log": 9.3,
+  "steady": {
+    "from_step": 60,
+    "to_step": 200,
+    "seconds": 23.89,
+    "steps_per_s": 5.86
+  },
+  "mean_updt_s": 0.1699,
+  "mean_data_s": 0.0,
+  "wsl_used_before_GB": 1.55,
+  "wsl_used_peak_GB": 3.93,
+  "wsl_total_GB": 9.71,
+  "train_tree_rss_peak_GB": 4.85,
+  "gpu_used_before_MiB": 1261,
+  "gpu_used_peak_MiB": 4323,
+  "gpu_train_peak_MiB": 3062,
+  "n_samples": 85,
+  "losses": [
+    [
+      20,
+      27.888
+    ],
+    [
+      40,
+      8.629
+    ],
+    [
+      60,
+      6.414
+    ],
+    [
+      80,
+      5.459
+    ],
+    [
+      100,
+      4.943
+    ],
+    [
+      120,
+      4.44
+    ],
+    [
+      140,
+      4.295
+    ],
+    [
+      160,
+      3.95
+    ],
+    [
+      180,
+      3.735
+    ],
+    [
+      200,
+      3.552
+    ]
+  ],
+  "cmd": [
+    "/root/venvs/chunk-reobserve/bin/python",
+    "-m",
+    "lerobot.scripts.train",
+    "--policy.type=act",
+    "--policy.device=cuda",
+    "--policy.use_amp=false",
+    "--policy.push_to_hub=false",
+    "--dataset.repo_id=lerobot/aloha_sim_transfer_cube_human",
+    "--dataset.video_backend=torchcodec",
+    "--env.type=aloha",
+    "--env.task=AlohaTransferCube-v0",
+    "--seed=1000",
+    "--batch_size=8",
+    "--steps=200",
+    "--num_workers=4",
+    "--save_freq=200",
+    "--log_freq=20",
+    "--eval_freq=0",
+    "--wandb.enable=false",
+    "--job_name=aloha_act_own",
+    "--output_dir=/root/train_out/act_smoke200"
+  ]
+}

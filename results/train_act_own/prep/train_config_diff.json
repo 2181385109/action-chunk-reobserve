@@ -1,0 +1,92 @@
+[
+  {
+    "key": "dataset.local_files_only",
+    "official": false,
+    "ours": "<缺>"
+  },
+  {
+    "key": "dataset.revision",
+    "official": "<缺>",
+    "ours": null
+  },
+  {
+    "key": "dataset.root",
+    "official": "<缺>",
+    "ours": null
+  },
+  {
+    "key": "dataset.video_backend",
+    "official": "pyav",
+    "ours": "torchcodec"
+  },
+  {
+    "key": "eval_freq",
+    "official": 20000,
+    "ours": 0
+  },
+  {
+    "key": "job_name",
+    "official": "aloha_act",
+    "ours": "aloha_act_own"
+  },
+  {
+    "key": "log_freq",
+    "official": 200,
+    "ours": 20
+  },
+  {
+    "key": "output_dir",
+    "official": "outputs/train/2025-01-25/14-25-32_aloha_act",
+    "ours": "/root/train_out/act_smoke200"
+  },
+  {
+    "key": "policy.license",
+    "official": "<缺>",
+    "ours": null
+  },
+  {
+    "key": "policy.private",
+    "official": "<缺>",
+    "ours": null
+  },
+  {
+    "key": "policy.push_to_hub",
+    "official": "<缺>",
+    "ours": false
+  },
+  {
+    "key": "policy.repo_id",
+    "official": "<缺>",
+    "ours": null
+  },
+  {
+    "key": "policy.tags",
+    "official": "<缺>",
+    "ours": null
+  },
+  {
+    "key": "save_freq",
+    "official": 20000,
+    "ours": 200
+  },
+  {
+    "key": "steps",
+    "official": 100000,
+    "ours": 200
+  },
+  {
+    "key": "wandb.enable",
+    "official": true,
+    "ours": false
+  },
+  {
+    "key": "wandb.mode",
+    "official": "<缺>",
+    "ours": null
+  },
+  {
+    "key": "wandb.run_id",
+    "official": "<缺>",
+    "ours": null
+  }
+]

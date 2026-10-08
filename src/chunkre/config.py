@@ -22,6 +22,7 @@ MODELS = {
                 env_kwargs=dict(task="AlohaTransferCube-v0"), default_k=100),
     "dp": dict(repo="lerobot/diffusion_pusht", env_type="pusht", env_kwargs=dict(), default_k=8),
 }
+POLICY_TYPES = {"act": "act", "dp": "diffusion"}   # policy config.json 的 "type"（本地检查点用来核对模型）
 MODES = ("fixed", "te")
 TE_COEFF = 0.01
 
@@ -69,6 +70,24 @@ def validate_k(model: str, mode: str, k: int, pcfg) -> None:
         raise ValueError(f"{model} 的执行长度 k 必须在 1..{ub} 之间，收到 k={k}")
 
 
+def check_local_policy_dir(path, model: str) -> dict:
+    """本地检查点目录必须有 config.json + model.safetensors，且 config 的 type 与 model 一致。返回 config.json 内容。"""
+    from pathlib import Path
+
+    p = Path(path)
+    if not p.is_dir():
+        raise FileNotFoundError(f"--policy-path {p} 不是目录（应为 .../checkpoints/<步>/pretrained_model）")
+    missing = [f for f in ("config.json", "model.safetensors") if not (p / f).is_file()]
+    if missing:
+        raise FileNotFoundError(f"--policy-path {p} 缺少 {missing}（应为 .../checkpoints/<步>/pretrained_model）")
+    import json
+
+    pc = json.loads((p / "config.json").read_text(encoding="utf-8"))
+    if pc.get("type") != POLICY_TYPES[model]:
+        raise ValueError(f"--policy-path {p} 的策略类型是 {pc.get('type')!r}，与 model={model!r} 不符")
+    return pc
+
+
 @dataclass
 class EvalConfig:
     model: str                      # act / dp
@@ -88,6 +107,9 @@ class EvalConfig:
     frame_every: int = 10           # 每隔几步存一张 PNG
     # T4：扰动 {kind, strength, params}（chunkre.perturb）；空 / kind=none = 无扰动（不进续跑指纹，旧结果照常续跑）
     perturb: dict = field(default_factory=dict)
+    # T10a：从本地检查点加载策略（lerobot 训练输出的 .../checkpoints/<步>/pretrained_model 目录）；
+    # None = hub 预训练模型 MODELS[model]["repo"]（None 时不进续跑指纹，旧结果照常续跑）
+    policy_path: str | None = None
 
     def __post_init__(self):
         if self.model not in MODELS:
@@ -101,6 +123,10 @@ class EvalConfig:
             raise ValueError(f"种子数 {len(self.seeds)} 必须是 batch_size={self.batch_size} 的正整数倍")
         if len(set(self.seeds)) != len(self.seeds):
             raise ValueError("种子列表有重复")
+        if self.policy_path in ("",):
+            self.policy_path = None
+        if self.policy_path is not None:
+            self.policy_path = str(self.policy_path)
         self.save_frames = parse_seeds(self.save_frames) if self.save_frames not in (None, "") else []
         if int(self.frame_every) < 1:
             raise ValueError("frame_every 必须 >= 1")

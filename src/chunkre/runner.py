@@ -27,7 +27,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from .config import MODELS, TE_COEFF, EvalConfig, validate_k
+from .config import MODELS, TE_COEFF, EvalConfig, check_local_policy_dir, validate_k
 from .metrics import EPISODE_COLUMNS, csv_columns, motion_metrics, summarize_csv
 from .perturb import Perturbation, make_perturbation
 from .seed_guard import check_seeds
@@ -86,13 +86,18 @@ def make_env_cfg(model: str):
 
 
 def build_policy(cfg: EvalConfig):
-    """加载 hub 预训练策略，按 cfg 设置 n_action_steps / 时间集成。返回 (policy, policy_info)。"""
+    """加载策略（hub 预训练；cfg.policy_path 不为 None 时从本地检查点目录，T10a），按 cfg 设置 n_action_steps / 时间集成。
+    返回 (policy, policy_info)。"""
     from lerobot.configs.policies import PreTrainedConfig
     from lerobot.policies.factory import make_policy
 
     spec = MODELS[cfg.model]
-    pcfg = PreTrainedConfig.from_pretrained(spec["repo"])
-    pcfg.pretrained_path = spec["repo"]
+    source = spec["repo"]
+    if cfg.policy_path is not None:
+        source = str(Path(cfg.policy_path).resolve())
+        check_local_policy_dir(source, cfg.model)
+    pcfg = PreTrainedConfig.from_pretrained(source)
+    pcfg.pretrained_path = source
     pcfg.device = cfg.device
     hub_default_k = int(pcfg.n_action_steps)
     if hub_default_k != spec["default_k"]:
@@ -108,7 +113,7 @@ def build_policy(cfg: EvalConfig):
     policy.eval()
     pc = policy.config
     info = dict(
-        repo=spec["repo"], policy_class=type(policy).__name__,
+        repo=source, policy_class=type(policy).__name__,
         n_action_steps=int(pc.n_action_steps), hub_default_n_action_steps=hub_default_k,
         n_obs_steps=int(pc.n_obs_steps),
         chunk_size=getattr(pc, "chunk_size", None), horizon=getattr(pc, "horizon", None),
@@ -370,6 +375,8 @@ def _fingerprint(cfg: EvalConfig) -> dict:
         d.pop(key, None)
     if not cfg.perturb_active:      # 无扰动：指纹与 T2/T3 写出的旧 config.json 相同
         d.pop("perturb", None)
+    if cfg.policy_path is None:     # hub 模型：指纹与 T10a 之前写出的 config.json 相同
+        d.pop("policy_path", None)
     return d
 
 
@@ -380,6 +387,9 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
     每批开始都用该批第一个种子重设全局种子，所以续跑结果与一次跑完逐回合相同。
     """
     check_seeds(cfg.seeds, model=cfg.model)
+    if cfg.policy_path is not None:
+        # 解析符号链接（checkpoints/last -> 005000）：指纹里记实际检查点，“last”以后指向别的检查点时不会续写进同一结果
+        cfg.policy_path = str(Path(cfg.policy_path).resolve())
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     cfg_path, csv_path, sum_path = out_dir / "config.json", out_dir / "episodes.csv", out_dir / "summary.json"

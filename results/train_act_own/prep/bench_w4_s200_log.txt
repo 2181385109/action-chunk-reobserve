@@ -1,0 +1,132 @@
+INFO 2026-10-08 17:40:00 ts/train.py:111 {'batch_size': 8,
+ 'dataset': {'episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'lerobot/aloha_sim_transfer_cube_human',
+             'revision': None,
+             'root': None,
+             'use_imagenet_stats': True,
+             'video_backend': 'torchcodec'},
+ 'env': {'episode_length': 400,
+         'features': {'action': {'shape': [14],
+                                 'type': <FeatureType.ACTION: 'ACTION'>},
+                      'agent_pos': {'shape': [14],
+                                    'type': <FeatureType.STATE: 'STATE'>},
+                      'pixels/top': {'shape': [480, 640, 3],
+                                     'type': <FeatureType.VISUAL: 'VISUAL'>}},
+         'features_map': {'action': 'action',
+                          'agent_pos': 'observation.state',
+                          'pixels/top': 'observation.images.top',
+                          'top': 'observation.image.top'},
+         'fps': 50,
+         'obs_type': 'pixels_agent_pos',
+         'render_mode': 'rgb_array',
+         'task': 'AlohaTransferCube-v0',
+         'type': 'aloha'},
+ 'eval': {'batch_size': 50, 'n_episodes': 50, 'use_async_envs': False},
+ 'eval_freq': 0,
+ 'job_name': 'aloha_act_own',
+ 'log_freq': 20,
+ 'num_workers': 4,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 10.0,
+               'lr': 1e-05,
+               'type': 'adamw',
+               'weight_decay': 0.0001},
+ 'output_dir': '/root/train_out/act_smoke200',
+ 'policy': {'chunk_size': 100,
+            'device': 'cuda',
+            'dim_feedforward': 3200,
+            'dim_model': 512,
+            'dropout': 0.1,
+            'feedforward_activation': 'relu',
+            'input_features': {},
+            'kl_weight': 10.0,
+            'latent_dim': 32,
+            'license': None,
+            'n_action_steps': 100,
+            'n_decoder_layers': 1,
+            'n_encoder_layers': 4,
+            'n_heads': 8,
+            'n_obs_steps': 1,
+            'n_vae_encoder_layers': 4,
+            'normalization_mapping': {'ACTION': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'STATE': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'VISUAL': <NormalizationMode.MEAN_STD: 'MEAN_STD'>},
+            'optimizer_lr': 1e-05,
+            'optimizer_lr_backbone': 1e-05,
+            'optimizer_weight_decay': 0.0001,
+            'output_features': {},
+            'pre_norm': False,
+            'pretrained_backbone_weights': 'ResNet18_Weights.IMAGENET1K_V1',
+            'private': None,
+            'push_to_hub': False,
+            'replace_final_stride_with_dilation': False,
+            'repo_id': None,
+            'tags': None,
+            'temporal_ensemble_coeff': None,
+            'type': 'act',
+            'use_amp': False,
+            'use_vae': True,
+            'vision_backbone': 'resnet18'},
+ 'resume': False,
+ 'save_checkpoint': True,
+ 'save_freq': 200,
+ 'scheduler': None,
+ 'seed': 1000,
+ 'steps': 200,
+ 'use_policy_training_preset': True,
+ 'wandb': {'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'run_id': None}}
+INFO 2026-10-08 17:40:00 ts/train.py:117 Logs will be saved locally.
+INFO 2026-10-08 17:40:00 ts/train.py:127 Creating dataset
+INFO 2026-10-08 17:40:01 _client.py:1025 HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/parquet/parquet.py "HTTP/1.1 404 Not Found"
+INFO 2026-10-08 17:40:02 ts/train.py:138 Creating policy
+INFO 2026-10-08 17:40:03 ts/train.py:144 Creating optimizer and scheduler
+INFO 2026-10-08 17:40:03 ts/train.py:156 Output dir: /root/train_out/act_smoke200
+INFO 2026-10-08 17:40:03 ts/train.py:158 cfg.env.task='AlohaTransferCube-v0'
+INFO 2026-10-08 17:40:03 ts/train.py:159 cfg.steps=200 (200)
+INFO 2026-10-08 17:40:03 ts/train.py:160 dataset.num_frames=20000 (20K)
+INFO 2026-10-08 17:40:03 ts/train.py:161 dataset.num_episodes=50
+INFO 2026-10-08 17:40:03 ts/train.py:162 num_learnable_params=51613582 (52M)
+INFO 2026-10-08 17:40:03 ts/train.py:163 num_total_params=51613672 (52M)
+INFO 2026-10-08 17:40:03 ts/train.py:202 Start offline training on a fixed dataset
+INFO 2026-10-08 17:40:09 ts/train.py:232 step:20 smpl:160 ep:0 epch:0.01 loss:27.888 grdn:450.767 lr:1.0e-05 updt_s:0.292 data_s:0.023
+INFO 2026-10-08 17:40:12 ts/train.py:232 step:40 smpl:320 ep:1 epch:0.02 loss:8.629 grdn:194.291 lr:1.0e-05 updt_s:0.169 data_s:0.000
+INFO 2026-10-08 17:40:16 ts/train.py:232 step:60 smpl:480 ep:1 epch:0.02 loss:6.414 grdn:148.507 lr:1.0e-05 updt_s:0.171 data_s:0.000
+INFO 2026-10-08 17:40:19 ts/train.py:232 step:80 smpl:640 ep:2 epch:0.03 loss:5.459 grdn:136.891 lr:1.0e-05 updt_s:0.171 data_s:0.000
+INFO 2026-10-08 17:40:23 ts/train.py:232 step:100 smpl:800 ep:2 epch:0.04 loss:4.943 grdn:122.479 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:40:26 ts/train.py:232 step:120 smpl:960 ep:2 epch:0.05 loss:4.440 grdn:115.175 lr:1.0e-05 updt_s:0.171 data_s:0.000
+INFO 2026-10-08 17:40:29 ts/train.py:232 step:140 smpl:1K ep:3 epch:0.06 loss:4.295 grdn:113.491 lr:1.0e-05 updt_s:0.169 data_s:0.000
+INFO 2026-10-08 17:40:33 ts/train.py:232 step:160 smpl:1K ep:3 epch:0.06 loss:3.950 grdn:105.025 lr:1.0e-05 updt_s:0.171 data_s:0.000
+INFO 2026-10-08 17:40:36 ts/train.py:232 step:180 smpl:1K ep:4 epch:0.07 loss:3.735 grdn:98.678 lr:1.0e-05 updt_s:0.169 data_s:0.000
+INFO 2026-10-08 17:40:40 ts/train.py:232 step:200 smpl:2K ep:4 epch:0.08 loss:3.552 grdn:94.668 lr:1.0e-05 updt_s:0.167 data_s:0.000
+INFO 2026-10-08 17:40:40 ts/train.py:241 Checkpoint policy after step 200
+INFO 2026-10-08 17:40:40 ts/train.py:283 End of training

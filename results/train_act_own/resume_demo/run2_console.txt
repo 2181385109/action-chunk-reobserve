@@ -1,0 +1,141 @@
+==================================================================
+[train_act] 模式：resume（已完成 200 / 300 步），workers=4，种子 1000，每 100 步存检查点
+[train_act] 预计耗时：约 0.01 小时（按实测 5.84 步/秒；笔记本降频、同时跑其他 GPU 任务会更慢）
+[train_act] 输出：/root/train_out/act_resume_demo    日志：results/train_act_own/resume_demo/train_log.txt
+==================================================================
+INFO 2026-10-08 17:55:56 ts/train.py:111 {'batch_size': 8,
+ 'dataset': {'episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'lerobot/aloha_sim_transfer_cube_human',
+             'revision': None,
+             'root': None,
+             'use_imagenet_stats': True,
+             'video_backend': 'torchcodec'},
+ 'env': {'episode_length': 400,
+         'features': {'action': {'shape': [14],
+                                 'type': <FeatureType.ACTION: 'ACTION'>},
+                      'agent_pos': {'shape': [14],
+                                    'type': <FeatureType.STATE: 'STATE'>},
+                      'pixels/top': {'shape': [480, 640, 3],
+                                     'type': <FeatureType.VISUAL: 'VISUAL'>}},
+         'features_map': {'action': 'action',
+                          'agent_pos': 'observation.state',
+                          'pixels/top': 'observation.images.top',
+                          'top': 'observation.image.top'},
+         'fps': 50,
+         'obs_type': 'pixels_agent_pos',
+         'render_mode': 'rgb_array',
+         'task': 'AlohaTransferCube-v0',
+         'type': 'aloha'},
+ 'eval': {'batch_size': 50, 'n_episodes': 50, 'use_async_envs': False},
+ 'eval_freq': 0,
+ 'job_name': 'aloha_act_own',
+ 'log_freq': 20,
+ 'num_workers': 4,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 10.0,
+               'lr': 1e-05,
+               'type': 'adamw',
+               'weight_decay': 0.0001},
+ 'output_dir': '/root/train_out/act_resume_demo',
+ 'policy': {'chunk_size': 100,
+            'device': 'cuda',
+            'dim_feedforward': 3200,
+            'dim_model': 512,
+            'dropout': 0.1,
+            'feedforward_activation': 'relu',
+            'input_features': {'observation.images.top': {'shape': [3,
+                                                                    480,
+                                                                    640],
+                                                          'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.state': {'shape': [14],
+                                                     'type': <FeatureType.STATE: 'STATE'>}},
+            'kl_weight': 10.0,
+            'latent_dim': 32,
+            'license': None,
+            'n_action_steps': 100,
+            'n_decoder_layers': 1,
+            'n_encoder_layers': 4,
+            'n_heads': 8,
+            'n_obs_steps': 1,
+            'n_vae_encoder_layers': 4,
+            'normalization_mapping': {'ACTION': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'STATE': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'VISUAL': <NormalizationMode.MEAN_STD: 'MEAN_STD'>},
+            'optimizer_lr': 1e-05,
+            'optimizer_lr_backbone': 1e-05,
+            'optimizer_weight_decay': 0.0001,
+            'output_features': {'action': {'shape': [14],
+                                           'type': <FeatureType.ACTION: 'ACTION'>}},
+            'pre_norm': False,
+            'pretrained_backbone_weights': 'ResNet18_Weights.IMAGENET1K_V1',
+            'private': None,
+            'push_to_hub': False,
+            'replace_final_stride_with_dilation': 0,
+            'repo_id': None,
+            'tags': None,
+            'temporal_ensemble_coeff': None,
+            'type': 'act',
+            'use_amp': False,
+            'use_vae': True,
+            'vision_backbone': 'resnet18'},
+ 'resume': True,
+ 'save_checkpoint': True,
+ 'save_freq': 100,
+ 'scheduler': None,
+ 'seed': 1000,
+ 'steps': 300,
+ 'use_policy_training_preset': True,
+ 'wandb': {'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'run_id': None}}
+INFO 2026-10-08 17:55:56 ts/train.py:117 Logs will be saved locally.
+INFO 2026-10-08 17:55:56 ts/train.py:127 Creating dataset
+INFO 2026-10-08 17:55:58 _client.py:1025 HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/parquet/parquet.py "HTTP/1.1 404 Not Found"
+INFO 2026-10-08 17:55:58 ts/train.py:138 Creating policy
+Loading weights from local directory
+INFO 2026-10-08 17:55:59 ts/train.py:144 Creating optimizer and scheduler
+INFO 2026-10-08 17:55:59 ts/train.py:156 Output dir: /root/train_out/act_resume_demo
+INFO 2026-10-08 17:55:59 ts/train.py:158 cfg.env.task='AlohaTransferCube-v0'
+INFO 2026-10-08 17:55:59 ts/train.py:159 cfg.steps=300 (300)
+INFO 2026-10-08 17:55:59 ts/train.py:160 dataset.num_frames=20000 (20K)
+INFO 2026-10-08 17:55:59 ts/train.py:161 dataset.num_episodes=50
+INFO 2026-10-08 17:55:59 ts/train.py:162 num_learnable_params=51613582 (52M)
+INFO 2026-10-08 17:55:59 ts/train.py:163 num_total_params=51613672 (52M)
+INFO 2026-10-08 17:55:59 ts/train.py:202 Start offline training on a fixed dataset
+INFO 2026-10-08 17:56:05 ts/train.py:232 step:220 smpl:2K ep:4 epch:0.09 loss:3.436 grdn:94.948 lr:1.0e-05 updt_s:0.265 data_s:0.024
+INFO 2026-10-08 17:56:09 ts/train.py:232 step:240 smpl:2K ep:5 epch:0.10 loss:3.365 grdn:89.212 lr:1.0e-05 updt_s:0.169 data_s:0.000
+INFO 2026-10-08 17:56:12 ts/train.py:232 step:260 smpl:2K ep:5 epch:0.10 loss:3.322 grdn:89.160 lr:1.0e-05 updt_s:0.170 data_s:0.000
+INFO 2026-10-08 17:56:15 ts/train.py:232 step:280 smpl:2K ep:6 epch:0.11 loss:3.221 grdn:88.621 lr:1.0e-05 updt_s:0.169 data_s:0.000
+INFO 2026-10-08 17:56:19 ts/train.py:232 step:300 smpl:2K ep:6 epch:0.12 loss:3.108 grdn:83.914 lr:1.0e-05 updt_s:0.169 data_s:0.000
+INFO 2026-10-08 17:56:19 ts/train.py:241 Checkpoint policy after step 300
+INFO 2026-10-08 17:56:21 ts/train.py:283 End of training
+loss 曲线 15 点 -> results/train_act_own/resume_demo/loss.csv, loss.png；最后：{'step': 300, 'loss': 3.108, 'grdn': 83.914, 'lr': 1e-05, 'updt_s': 0.169, 'data_s': 0.0, 'run': 2}；检查点：[100, 200, 300]
+[train_act] 训练结束。最终权重：/root/train_out/act_resume_demo/checkpoints/last/pretrained_model

@@ -1,0 +1,121 @@
+{
+  "repo_id": "lerobot/aloha_sim_transfer_cube_human",
+  "root": "/root/.cache/huggingface/lerobot/lerobot/aloha_sim_transfer_cube_human",
+  "download_s": 1.7,
+  "pyav_vs_torchcodec_pixels": {
+    "video": "episode_000000.mp4",
+    "frames": [
+      0,
+      50,
+      199,
+      399
+    ],
+    "max_abs_diff": 0,
+    "mean_abs_diff": 0.0,
+    "frac_pixels_diff": 0.0
+  },
+  "size_bytes": 70471168,
+  "size_MB": 70.5,
+  "size_by_dir_MB": {
+    ".cache": 0.0,
+    "data": 2.7,
+    "meta": 0.2,
+    "videos": 67.6
+  },
+  "n_video_files": 50,
+  "num_episodes": 50,
+  "num_frames": 20000,
+  "fps": 50,
+  "features": {
+    "observation.images.top": {
+      "dtype": "video",
+      "shape": [
+        480,
+        640,
+        3
+      ]
+    },
+    "observation.state": {
+      "dtype": "float32",
+      "shape": [
+        14
+      ]
+    },
+    "action": {
+      "dtype": "float32",
+      "shape": [
+        14
+      ]
+    },
+    "episode_index": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    },
+    "frame_index": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    },
+    "timestamp": {
+      "dtype": "float32",
+      "shape": [
+        1
+      ]
+    },
+    "next.done": {
+      "dtype": "bool",
+      "shape": [
+        1
+      ]
+    },
+    "index": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    },
+    "task_index": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    }
+  },
+  "codebase_version": "v2.1",
+  "video_info": null,
+  "ffprobe_first_video": {
+    "codec_name": "av1",
+    "width": 640,
+    "height": 480,
+    "pix_fmt": "yuv420p",
+    "avg_frame_rate": "50/1"
+  },
+  "delta_timestamps_note": "ACT 训练时 lerobot 按 chunk_size=100 自动设置 action 的 delta_timestamps（每样本 1 帧图像 + 100 步动作）",
+  "lerobot_default_video_backend": "torchcodec",
+  "official_video_backend": "pyav",
+  "decode_bench": {
+    "pyav": {
+      "ok": false,
+      "error": "TypeError: open() got an unexpected keyword argument 'metadata_errors'"
+    },
+    "torchcodec": {
+      "ok": true,
+      "ms_per_sample": 3.2,
+      "image_shape": [
+        3,
+        480,
+        640
+      ],
+      "image_dtype": "torch.float32",
+      "action_shape": [
+        14
+      ]
+    }
+  },
+  "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+  "pyav_version": "19.0.1",
+  "torchcodec_version": "0.5"
+}

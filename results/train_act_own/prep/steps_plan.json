@@ -1,0 +1,10 @@
+{
+  "steps_per_s": 5.842,
+  "startup_s": 15.0,
+  "official_steps": 100000,
+  "est_official_h": 4.759,
+  "budget_h": 10.0,
+  "steps": 100000,
+  "est_steps_h": 4.759,
+  "rule": "官方步数估计 <= 10 小时 → 用官方步数"
+}
