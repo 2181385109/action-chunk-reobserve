@@ -1,0 +1,122 @@
+[
+  {
+    "item": "k20__none",
+    "available": true,
+    "n": 200,
+    "both": 104,
+    "only_own": 41,
+    "only_pretrained": 20,
+    "neither": 35,
+    "agreement": 0.695,
+    "rate_own": 0.725,
+    "rate_pretrained": 0.62
+  },
+  {
+    "item": "k50__none",
+    "available": true,
+    "n": 200,
+    "both": 131,
+    "only_own": 39,
+    "only_pretrained": 17,
+    "neither": 13,
+    "agreement": 0.72,
+    "rate_own": 0.85,
+    "rate_pretrained": 0.74
+  },
+  {
+    "item": "k100__none",
+    "available": true,
+    "n": 200,
+    "both": 139,
+    "only_own": 24,
+    "only_pretrained": 16,
+    "neither": 21,
+    "agreement": 0.8,
+    "rate_own": 0.815,
+    "rate_pretrained": 0.775
+  },
+  {
+    "item": "k20__push0.06",
+    "available": true,
+    "n": 200,
+    "both": 74,
+    "only_own": 16,
+    "only_pretrained": 28,
+    "neither": 82,
+    "agreement": 0.78,
+    "rate_own": 0.45,
+    "rate_pretrained": 0.51
+  },
+  {
+    "item": "k50__push0.06",
+    "available": true,
+    "n": 200,
+    "both": 60,
+    "only_own": 24,
+    "only_pretrained": 21,
+    "neither": 95,
+    "agreement": 0.775,
+    "rate_own": 0.42,
+    "rate_pretrained": 0.405
+  },
+  {
+    "item": "k100__push0.06",
+    "available": true,
+    "n": 200,
+    "both": 21,
+    "only_own": 21,
+    "only_pretrained": 16,
+    "neither": 142,
+    "agreement": 0.815,
+    "rate_own": 0.21,
+    "rate_pretrained": 0.185
+  },
+  {
+    "item": "k20__delay10",
+    "available": true,
+    "n": 200,
+    "both": 0,
+    "only_own": 0,
+    "only_pretrained": 0,
+    "neither": 200,
+    "agreement": 1.0,
+    "rate_own": 0.0,
+    "rate_pretrained": 0.0
+  },
+  {
+    "item": "k50__delay10",
+    "available": true,
+    "n": 200,
+    "both": 15,
+    "only_own": 35,
+    "only_pretrained": 24,
+    "neither": 126,
+    "agreement": 0.705,
+    "rate_own": 0.25,
+    "rate_pretrained": 0.195
+  },
+  {
+    "item": "k100__delay10",
+    "available": true,
+    "n": 200,
+    "both": 77,
+    "only_own": 37,
+    "only_pretrained": 18,
+    "neither": 68,
+    "agreement": 0.725,
+    "rate_own": 0.57,
+    "rate_pretrained": 0.475
+  },
+  {
+    "item": "baseline (k=100, seeds 1000–1499)",
+    "available": true,
+    "n": 500,
+    "both": 372,
+    "only_own": 44,
+    "only_pretrained": 41,
+    "neither": 43,
+    "agreement": 0.83,
+    "rate_own": 0.832,
+    "rate_pretrained": 0.826
+  }
+]

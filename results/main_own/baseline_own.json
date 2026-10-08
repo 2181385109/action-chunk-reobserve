@@ -1,0 +1,19 @@
+{
+  "official": 0.83,
+  "weak_threshold": 0.4,
+  "available": true,
+  "complete": true,
+  "issue": "",
+  "n": 500,
+  "n_success": 416,
+  "rate": 0.832,
+  "wilson_lo": 0.7967256709103735,
+  "wilson_hi": 0.8622117670231558,
+  "weak": false,
+  "repro_n": 500,
+  "repro_n_success": 413,
+  "repro_rate": 0.826,
+  "repro_wilson_lo": 0.7903184021001322,
+  "repro_wilson_hi": 0.8567105279189358,
+  "repro_complete": true
+}
