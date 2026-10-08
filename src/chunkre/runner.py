@@ -379,7 +379,7 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
     断点续跑：out_dir 里已有相同配置的 episodes.csv 时，已完整写入的批次直接跳过。
     每批开始都用该批第一个种子重设全局种子，所以续跑结果与一次跑完逐回合相同。
     """
-    check_seeds(cfg.seeds)
+    check_seeds(cfg.seeds, model=cfg.model)
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     cfg_path, csv_path, sum_path = out_dir / "config.json", out_dir / "episodes.csv", out_dir / "summary.json"

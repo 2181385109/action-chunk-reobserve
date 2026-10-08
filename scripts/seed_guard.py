@@ -8,5 +8,5 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from chunkre.seed_guard import (  # noqa: E402,F401
-    DEBUG_MAX, FINAL_MIN, check_seeds, preregistration_committed, seed_zone,
+    DEBUG_MAX, FINAL_MIN, PREREG_FILES, check_seeds, preregistration_committed, prereg_file, seed_zone,
 )

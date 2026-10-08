@@ -2,7 +2,8 @@
 
 - 0–9999：调试和调参（含复现），随时可用。
 - 10000–199999：保留，不使用（官方 DP 训练种子 100000，训练中的评估用过 100000 开头的种子）。
-- >=200000：只用于最终评估；PREREGISTRATION.md 在仓库里存在且已 git 提交之前，直接抛错。
+- >=200000：只用于最终评估；对应的登记文件在仓库里存在且已 git 提交之前，直接抛错。
+  ACT（model=None / "act"）看 PREREGISTRATION.md；DP（model="dp"，T9）看 PREREGISTRATION_DP.md。
 - 负数：不允许。
 """
 from __future__ import annotations
@@ -13,15 +14,26 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DEBUG_MAX = 9999
 FINAL_MIN = 200000
+# 模型 -> 登记文件。model=None（不知道模型的老调用）按 ACT 处理，行为与 T2 起完全一致。
+PREREG_FILES = {"act": "PREREGISTRATION.md", "dp": "PREREGISTRATION_DP.md"}
 
 
-def preregistration_committed(root: Path = ROOT) -> bool:
-    p = root / "PREREGISTRATION.md"
+def prereg_file(model: str | None) -> str:
+    if model is None:
+        return PREREG_FILES["act"]
+    if model not in PREREG_FILES:
+        raise ValueError(f"未知模型 {model!r}，没有对应的登记文件")
+    return PREREG_FILES[model]
+
+
+def preregistration_committed(root: Path = ROOT, model: str | None = None) -> bool:
+    name = prereg_file(model)
+    p = root / name
     if not p.exists():
         return False
     try:
         out = subprocess.run(
-            ["git", "-C", str(root), "log", "--oneline", "-1", "--", "PREREGISTRATION.md"],
+            ["git", "-C", str(root), "log", "--oneline", "-1", "--", name],
             capture_output=True, text=True, check=True,
         ).stdout.strip()
         return bool(out)
@@ -41,7 +53,7 @@ def seed_zone(s: int) -> str:
     return "invalid"
 
 
-def check_seeds(seeds, root: Path = ROOT) -> None:
+def check_seeds(seeds, root: Path = ROOT, model: str | None = None) -> None:
     prereg = None
     for s in seeds:
         zone = seed_zone(s)
@@ -49,10 +61,10 @@ def check_seeds(seeds, root: Path = ROOT) -> None:
             continue
         if zone == "final":
             if prereg is None:
-                prereg = preregistration_committed(root)
+                prereg = preregistration_committed(root, model)
             if not prereg:
                 raise RuntimeError(
-                    f"种子 {s} >= {FINAL_MIN} 仅用于最终评估，而 PREREGISTRATION.md 尚未提交，禁止使用。"
+                    f"种子 {s} >= {FINAL_MIN} 仅用于最终评估，而 {prereg_file(model)} 尚未提交，禁止使用。"
                 )
             continue
         if zone == "reserved":

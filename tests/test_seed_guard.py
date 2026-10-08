@@ -57,3 +57,92 @@ def test_repo_prereg_is_committed_so_final_seeds_pass():
     if not preregistration_committed():
         pytest.skip("没有 git 历史 / 登记文件未提交")
     check_seeds([200000, 200199])
+
+
+# ---------- T9：DP 用自己的登记文件 ----------
+def _git_commit(root, name):
+    g = ["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run(g + ["add", name], check=True)
+    subprocess.run(g + ["commit", "-q", "-m", name], check=True)
+
+
+def test_prereg_file_per_model():
+    from chunkre.seed_guard import prereg_file
+    assert prereg_file(None) == prereg_file("act") == "PREREGISTRATION.md"
+    assert prereg_file("dp") == "PREREGISTRATION_DP.md"
+    with pytest.raises(ValueError):
+        prereg_file("pi0")
+
+
+def test_dp_final_seeds_need_dp_prereg(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    # 没有任何登记文件：ACT、DP 都拦
+    for m in (None, "act", "dp"):
+        with pytest.raises(RuntimeError, match="PREREGISTRATION"):
+            check_seeds([200000], root=tmp_path, model=m)
+    # 只提交了 ACT 的登记：ACT 放行，DP 仍被拦，报错点名 DP 文件
+    (tmp_path / "PREREGISTRATION.md").write_text("act\n", encoding="utf-8")
+    _git_commit(tmp_path, "PREREGISTRATION.md")
+    check_seeds([200000], root=tmp_path, model="act")
+    check_seeds([200000], root=tmp_path)
+    with pytest.raises(RuntimeError, match="PREREGISTRATION_DP.md"):
+        check_seeds([200000, 200199], root=tmp_path, model="dp")
+    # DP 登记文件存在但未提交：仍拦
+    (tmp_path / "PREREGISTRATION_DP.md").write_text("dp\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="PREREGISTRATION_DP.md"):
+        check_seeds([200000], root=tmp_path, model="dp")
+    # 提交后放行
+    _git_commit(tmp_path, "PREREGISTRATION_DP.md")
+    check_seeds([200000, 200199], root=tmp_path, model="dp")
+    # 调参区间不需要登记，保留区间照旧禁止
+    check_seeds([5000, 5049], root=tmp_path, model="dp")
+    with pytest.raises(RuntimeError, match="保留"):
+        check_seeds([100000], root=tmp_path, model="dp")
+
+
+def test_dp_only_dp_prereg_does_not_unlock_act(tmp_path):
+    """反过来：只有 DP 登记时，ACT（含 model=None）仍被拦。"""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "PREREGISTRATION_DP.md").write_text("dp\n", encoding="utf-8")
+    _git_commit(tmp_path, "PREREGISTRATION_DP.md")
+    check_seeds([200000], root=tmp_path, model="dp")
+    for m in (None, "act"):
+        with pytest.raises(RuntimeError, match="PREREGISTRATION.md"):
+            check_seeds([200000], root=tmp_path, model=m)
+
+
+def test_run_eval_passes_model_to_seed_guard():
+    """runner.run_eval 必须把 cfg.model 传给 check_seeds（否则 DP 会按 ACT 的文件放行）。"""
+    import inspect
+
+    from chunkre import runner
+    src = inspect.getsource(runner.run_eval)
+    assert "check_seeds(cfg.seeds, model=cfg.model)" in src
+
+
+def test_repo_dp_prereg_is_committed():
+    from chunkre.seed_guard import preregistration_committed
+    if not preregistration_committed():
+        pytest.skip("没有 git 历史")
+    assert preregistration_committed(model="dp")
+    check_seeds([200000, 200199], model="dp")
+
+
+def test_run_eval_calls_guard_with_model_before_anything_else(tmp_path, monkeypatch):
+    """行为检查（不跑回合）：run_eval 的第一件事是 check_seeds(seeds, model=cfg.model)；守卫抛错时什么都没创建。"""
+    from chunkre import runner
+    from chunkre.config import EvalConfig
+
+    calls = []
+
+    def fake_guard(seeds, root=None, model=None):
+        calls.append((list(seeds)[:2], model))
+        raise RuntimeError("blocked-by-test")
+
+    monkeypatch.setattr(runner, "check_seeds", fake_guard)
+    for model in ("dp", "act"):
+        out = tmp_path / model
+        with pytest.raises(RuntimeError, match="blocked-by-test"):
+            runner.run_eval(EvalConfig(model=model, seeds=[200000, 200001], batch_size=2), out)
+        assert not out.exists()
+    assert calls == [([200000, 200001], "dp"), ([200000, 200001], "act")]

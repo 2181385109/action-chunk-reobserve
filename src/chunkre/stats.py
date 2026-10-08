@@ -110,3 +110,27 @@ def classify(diff: float, p_holm: float, alpha: float = ALPHA) -> str:
         if diff < 0:
             return "opposite"
     return "not_significant"
+
+
+def gap_change(short_c, long_c, short_0, long_0, n_boot: int = N_BOOT, seed: int = BOOT_SEED, alpha: float = ALPHA) -> dict:
+    """“差距变化”（探索性，不检验）：短 k 与长 k 的成败差，在扰动下比无扰动时大多少。
+
+    四个 0/1 序列按同一批种子对齐。每个种子 i：
+        gap_change_i = (short_c[i] - long_c[i]) - (short_0[i] - long_0[i])
+    取平均，给对种子有放回重抽样的 bootstrap 百分位区间（四个格子用同一组重抽样下标；
+    等价于对 gap_change_i 做 bootstrap_mean_ci，随机种子同为 BOOT_SEED）。
+    恒等式：mean(gap_change_i) = (rate_short_c - rate_long_c) - (rate_short_0 - rate_long_0)。
+    正值 = 短 k 在扰动下相对少吃亏（或多受益）；负值相反。
+    """
+    arrs = [np.asarray(x) for x in (short_c, long_c, short_0, long_0)]
+    if any(a.shape != arrs[0].shape or a.ndim != 1 or a.size == 0 for a in arrs):
+        raise ValueError("四个序列必须等长、非空")
+    if not all(np.isin(a, (0, 1)).all() for a in arrs):
+        raise ValueError("成功必须是 0/1")
+    sc, lc, s0, l0 = (a.astype(np.float64) for a in arrs)
+    d = (sc - lc) - (s0 - l0)
+    mean, lo, hi, n = bootstrap_mean_ci(d, n_boot=n_boot, seed=seed, alpha=alpha)
+    return dict(n=n, gap_pert=float(sc.mean() - lc.mean()), gap_none=float(s0.mean() - l0.mean()),
+                gap_change=mean, ci_lo=lo, ci_hi=hi,
+                rate_short_pert=float(sc.mean()), rate_long_pert=float(lc.mean()),
+                rate_short_none=float(s0.mean()), rate_long_none=float(l0.mean()))
