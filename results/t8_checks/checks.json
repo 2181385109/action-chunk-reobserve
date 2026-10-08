@@ -25,11 +25,11 @@
       "columns_with_diff": [],
       "reward_max_abs_diff": {
         "sum_reward": 9.947598300641403e-14,
-        "max_reward": 2.220446049250313e-16
+        "max_reward": 1.1102230246251565e-16
       },
       "reward_n_not_bitwise_equal": {
-        "sum_reward": 6,
-        "max_reward": 5
+        "sum_reward": 4,
+        "max_reward": 2
       },
       "full_episode_actions_identical": 50,
       "success_a": 33,
@@ -62,14 +62,14 @@
       "episodes_identical": 50,
       "columns_with_diff": [],
       "reward_max_abs_diff": {
-        "sum_reward": 8.526512829121202e-14,
+        "sum_reward": 1.4210854715202004e-14,
         "max_reward": 1.1102230246251565e-16
       },
       "reward_n_not_bitwise_equal": {
-        "sum_reward": 6,
-        "max_reward": 4
+        "sum_reward": 3,
+        "max_reward": 3
       },
-      "full_episode_actions_identical": 50,
+      "full_episode_actions_identical": null,
       "success_a": 33,
       "success_b": 33,
       "push_status_b": [
@@ -82,14 +82,23 @@
     "run": "results/t8_checks/d2_k8_dmax",
     "d": 60.0,
     "n": 50,
-    "n_pushed": 33,
+    "n_pushed": 50,
     "n_clipped_wall": 2,
-    "n_skipped_overlap": 17,
+    "n_skipped_overlap": 0,
     "n_not_reached": 0,
     "max_abs_len_error": 2.3346948552216418e-05,
     "max_abs_angle_change": 0.0,
     "max_change_at_other_steps": 0.0,
     "bad_seeds": [],
+    "max_direction_error_rad": 3.650184161874126e-07,
+    "redraw_hist": {
+      "0": 33,
+      "1": 9,
+      "2": 3,
+      "3": 3,
+      "4": 1,
+      "5": 1
+    },
     "passed": true,
     "pngs": [
       "results/t8_checks/d2_seed0_step25.png",
@@ -101,26 +110,57 @@
     "n": 50,
     "levels": {
       "d20": {
-        "skipped_overlap": 17,
-        "clipped_wall": 1,
+        "skipped_overlap": 0,
+        "skipped_if_no_redraw": 17,
+        "redrawn": 17,
+        "redraw_hist": {
+          "0": 33,
+          "1": 6,
+          "2": 6,
+          "3": 2,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        },
+        "clipped_wall": 2,
         "in_contact_at_push": 25,
-        "skipped_while_in_contact": 15
+        "skipped_while_in_contact": 0
       },
       "d40": {
-        "skipped_overlap": 18,
+        "skipped_overlap": 0,
+        "skipped_if_no_redraw": 18,
+        "redrawn": 18,
+        "redraw_hist": {
+          "0": 32,
+          "1": 10,
+          "2": 4,
+          "3": 2,
+          "6": 1,
+          "7": 1
+        },
         "clipped_wall": 2,
         "in_contact_at_push": 25,
-        "skipped_while_in_contact": 12
+        "skipped_while_in_contact": 0
       },
       "d60": {
-        "skipped_overlap": 17,
+        "skipped_overlap": 0,
+        "skipped_if_no_redraw": 17,
+        "redrawn": 17,
+        "redraw_hist": {
+          "0": 33,
+          "1": 9,
+          "2": 3,
+          "3": 3,
+          "4": 1,
+          "5": 1
+        },
         "clipped_wall": 2,
         "in_contact_at_push": 25,
-        "skipped_while_in_contact": 11
+        "skipped_while_in_contact": 0
       }
     },
     "mismatch_vs_actual_at_dmax": [],
-    "note": "轨迹为 float32，重放只作估算；d=最大档与实际运行逐回合比对"
+    "note": "轨迹为 float32，重放只作估算；d=最大档与实际运行逐回合比对（skipped_overlap 和重抽次数）"
   },
   "d3": {
     "k4_none": {
@@ -138,16 +178,15 @@
     },
     "k4_dmax": {
       "n": 50,
-      "n_success": 9,
-      "success_rate": 0.18,
+      "n_success": 6,
+      "success_rate": 0.12,
       "ci": [
-        0.09770192670234178,
-        0.30796053674300783
+        0.05617600150932274,
+        0.23804817383202992
       ],
-      "mean_max_reward": 0.9069488896063177,
+      "mean_max_reward": 0.9042626140115341,
       "push_status": {
-        "pushed": 31,
-        "skipped_overlap": 19
+        "pushed": 50
       }
     },
     "k15_none": {
@@ -165,16 +204,15 @@
     },
     "k15_dmax": {
       "n": 50,
-      "n_success": 26,
-      "success_rate": 0.52,
+      "n_success": 22,
+      "success_rate": 0.44,
       "ci": [
-        0.38511744890044614,
-        0.6520286471342196
+        0.3116219921125717,
+        0.5769397197834315
       ],
-      "mean_max_reward": 0.9553036023010744,
+      "mean_max_reward": 0.9326345491465362,
       "push_status": {
-        "pushed": 29,
-        "skipped_overlap": 21
+        "pushed": 50
       }
     },
     "k8_none": {
@@ -192,16 +230,15 @@
     },
     "k8_dmax": {
       "n": 50,
-      "n_success": 27,
-      "success_rate": 0.54,
+      "n_success": 30,
+      "success_rate": 0.6,
       "ci": [
-        0.40398871399157477,
-        0.6703034780777566
+        0.4618143774758936,
+        0.7239161026974346
       ],
-      "mean_max_reward": 0.9232254872520533,
+      "mean_max_reward": 0.9539523664099707,
       "push_status": {
-        "pushed": 33,
-        "skipped_overlap": 17
+        "pushed": 50
       }
     }
   }

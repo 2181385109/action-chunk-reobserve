@@ -1,0 +1,23 @@
+{
+  "what": "lerobot 0.3.3 eval_main（lerobot-eval 同一入口），见 scripts/t8_dp_k4.py run_lerobot 的运行时替换",
+  "argv": [
+    "lerobot-eval",
+    "--policy.path=lerobot/diffusion_pusht",
+    "--policy.n_action_steps=4",
+    "--policy.device=cuda",
+    "--env.type=pusht",
+    "--eval.batch_size=50",
+    "--eval.n_episodes=50",
+    "--seed=0",
+    "--output_dir=/mnt/d/xiangmu/chunk-reobserve/results/t8_dp_k4/lerobot_k4/lerobot_output"
+  ],
+  "torch_flags": {
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "cudnn_allow_tf32": true,
+    "matmul_allow_tf32": true,
+    "use_deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+  },
+  "actions_npz": "actions.npz：lerobot rollout 返回的 action (B, T, A)，回合结束后的步被 lerobot 用 0 填充"
+}

@@ -22,8 +22,8 @@
     "mean_max_reward": 0.9458561867882135,
     "n_capped": 0,
     "n_batches": 1,
-    "total_batch_wall_s": 533.4191534910001,
-    "wall_s_per_episode": 10.668383069820003,
+    "total_batch_wall_s": 502.50135369800046,
+    "wall_s_per_episode": 10.05002707396001,
     "mean_path_length": 2011.409952171013,
     "mean_jerk": 4.169000235063449,
     "mean_reversal_rate": 0.21529450728116867

@@ -68,7 +68,8 @@
         "t_lo": 20,
         "t_hi": 80,
         "edge_margin": 0.0,
-        "overlap_margin": 0.0
+        "overlap_margin": 0.0,
+        "max_redraws": 20
       }
     },
     "k_effective": 4,
@@ -94,9 +95,9 @@
   "gl_renderer": "n/a (pygame 渲染，不经过 OpenGL)",
   "runs": [
     {
-      "started": "2026-10-08T11:45:04",
+      "started": "2026-10-08T12:14:25",
       "host": "LAPTOP-KV18L0N0",
-      "git_commit": "693858bbf693c7ab2b6d7ec28d53059f41acf505",
+      "git_commit": "113a234fe9ce28fedcf94bb3f397b2d54aaf59ea",
       "python": "3.12.3",
       "versions": {
         "lerobot": "0.3.3",
@@ -159,6 +160,7 @@
     "push_status",
     "push_clip",
     "push_d_actual",
+    "push_redraws",
     "cube_pre_x",
     "cube_pre_y",
     "cube_pre_z",
@@ -173,7 +175,8 @@
       "t_lo": 20,
       "t_hi": 80,
       "edge_margin": 0.0,
-      "overlap_margin": 0.0
+      "overlap_margin": 0.0,
+      "max_redraws": 20
     },
     "unit": "PushT 坐标（0–512 画布；观测图 96×96，1 个观测像素 = 5.33 单位）",
     "geometry": {
@@ -191,9 +194,9 @@
         120.0
       ]
     },
-    "rng": "numpy default_rng(SeedSequence([回合种子, crc32('push')]))；先抽 push_step 再抽角度",
+    "rng": "numpy default_rng(SeedSequence([回合种子, crc32('push')]))；先抽 push_step 再抽角度，重叠时接着抽重抽的角度",
     "timing": "第 push_step 步：策略已选好该步动作之后、env.step 之前平移 T 形块（不旋转，速度清零）",
-    "rules": "先沿方向截断到 T 形块整体在墙内（clip=wall），再检查与智能体重叠（重叠 -> skipped_overlap，不推）"
+    "rules": "先沿方向截断到 T 形块整体在墙内（clip=wall），再检查与智能体重叠（重叠 -> 同一 Generator 重抽方向，距离 d 不变，最多 max_redraws 次；仍重叠 -> skipped_overlap，不推）"
   },
   "logging": {
     "log_traj": false,

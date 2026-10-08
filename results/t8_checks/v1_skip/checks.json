@@ -1,0 +1,208 @@
+{
+  "d1": {
+    "main": {
+      "a": "results/t8_dp_baseline/run_k8",
+      "b": "results/t8_checks/d1_d0",
+      "n": 50,
+      "compared_exact_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "mode",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "n_policy_calls",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate"
+      ],
+      "episodes_identical": 50,
+      "columns_with_diff": [],
+      "reward_max_abs_diff": {
+        "sum_reward": 9.947598300641403e-14,
+        "max_reward": 2.220446049250313e-16
+      },
+      "reward_n_not_bitwise_equal": {
+        "sum_reward": 6,
+        "max_reward": 5
+      },
+      "full_episode_actions_identical": 50,
+      "success_a": 33,
+      "success_b": 33,
+      "push_status_b": [
+        "zero"
+      ]
+    },
+    "control_none_vs_none": {
+      "a": "results/t8_dp_baseline/run_k8",
+      "b": "results/t8_checks/d1_none_rerun",
+      "n": 50,
+      "compared_exact_columns": [
+        "batch_idx",
+        "env_idx",
+        "seed",
+        "model",
+        "mode",
+        "k",
+        "success",
+        "steps",
+        "max_steps",
+        "capped",
+        "n_policy_calls",
+        "smoothness",
+        "path_length",
+        "jerk",
+        "reversal_rate"
+      ],
+      "episodes_identical": 50,
+      "columns_with_diff": [],
+      "reward_max_abs_diff": {
+        "sum_reward": 8.526512829121202e-14,
+        "max_reward": 1.1102230246251565e-16
+      },
+      "reward_n_not_bitwise_equal": {
+        "sum_reward": 6,
+        "max_reward": 4
+      },
+      "full_episode_actions_identical": 50,
+      "success_a": 33,
+      "success_b": 33,
+      "push_status_b": [
+        ""
+      ]
+    },
+    "passed": true
+  },
+  "d2": {
+    "run": "results/t8_checks/d2_k8_dmax",
+    "d": 60.0,
+    "n": 50,
+    "n_pushed": 33,
+    "n_clipped_wall": 2,
+    "n_skipped_overlap": 17,
+    "n_not_reached": 0,
+    "max_abs_len_error": 2.3346948552216418e-05,
+    "max_abs_angle_change": 0.0,
+    "max_change_at_other_steps": 0.0,
+    "bad_seeds": [],
+    "passed": true,
+    "pngs": [
+      "results/t8_checks/d2_seed0_step25.png",
+      "results/t8_checks/d2_seed1_step59.png"
+    ]
+  },
+  "skip_estimate": {
+    "run": "results/t8_checks/d2_k8_dmax",
+    "n": 50,
+    "levels": {
+      "d20": {
+        "skipped_overlap": 17,
+        "clipped_wall": 1,
+        "in_contact_at_push": 25,
+        "skipped_while_in_contact": 15
+      },
+      "d40": {
+        "skipped_overlap": 18,
+        "clipped_wall": 2,
+        "in_contact_at_push": 25,
+        "skipped_while_in_contact": 12
+      },
+      "d60": {
+        "skipped_overlap": 17,
+        "clipped_wall": 2,
+        "in_contact_at_push": 25,
+        "skipped_while_in_contact": 11
+      }
+    },
+    "mismatch_vs_actual_at_dmax": [],
+    "note": "轨迹为 float32，重放只作估算；d=最大档与实际运行逐回合比对"
+  },
+  "d3": {
+    "k4_none": {
+      "n": 50,
+      "n_success": 14,
+      "success_rate": 0.28,
+      "ci": [
+        0.17474170665911232,
+        0.4166512369595657
+      ],
+      "mean_max_reward": 0.9458561867882135,
+      "push_status": {
+        "none": 50
+      }
+    },
+    "k4_dmax": {
+      "n": 50,
+      "n_success": 9,
+      "success_rate": 0.18,
+      "ci": [
+        0.09770192670234178,
+        0.30796053674300783
+      ],
+      "mean_max_reward": 0.9069488896063177,
+      "push_status": {
+        "pushed": 31,
+        "skipped_overlap": 19
+      }
+    },
+    "k15_none": {
+      "n": 50,
+      "n_success": 25,
+      "success_rate": 0.5,
+      "ci": [
+        0.3664451431682858,
+        0.6335548568317142
+      ],
+      "mean_max_reward": 0.9094076058555648,
+      "push_status": {
+        "none": 50
+      }
+    },
+    "k15_dmax": {
+      "n": 50,
+      "n_success": 26,
+      "success_rate": 0.52,
+      "ci": [
+        0.38511744890044614,
+        0.6520286471342196
+      ],
+      "mean_max_reward": 0.9553036023010744,
+      "push_status": {
+        "pushed": 29,
+        "skipped_overlap": 21
+      }
+    },
+    "k8_none": {
+      "n": 50,
+      "n_success": 33,
+      "success_rate": 0.66,
+      "ci": [
+        0.521538260502326,
+        0.7756305077749992
+      ],
+      "mean_max_reward": 0.9255861918097854,
+      "push_status": {
+        "none": 50
+      }
+    },
+    "k8_dmax": {
+      "n": 50,
+      "n_success": 27,
+      "success_rate": 0.54,
+      "ci": [
+        0.40398871399157477,
+        0.6703034780777566
+      ],
+      "mean_max_reward": 0.9232254872520533,
+      "push_status": {
+        "pushed": 33,
+        "skipped_overlap": 17
+      }
+    }
+  }
+}

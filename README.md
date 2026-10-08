@@ -123,6 +123,7 @@ Descriptive observations from the 40-cell table (exploratory, no tests, no corre
 - The perturbations are hand-designed (push distance and window, i.i.d. pixel noise, constant delay) and may not resemble real disturbances; the pixel noise is clipped, so the realised noise is smaller than σ (about 0.82σ on ALOHA images).
 - 200 episodes per cell give Wilson intervals about ±7 points at a rate of 0.5; differences of a few points (and all "best policy" statements above) are within noise.
 - Secondary metrics are averages over successes and failures together, so they mix behaviour with outcome.
+- In the PushT push-the-T perturbation (Diffusion Policy; not used for the ACT results above) the push direction excludes directions in which the pushed block would overlap the agent: an overlapping direction is redrawn from the episode's own generator (up to 20 times), so the realised direction distribution is slightly tilted away from the agent.
 
 ## Reproduce
 

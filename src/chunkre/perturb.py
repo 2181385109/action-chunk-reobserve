@@ -31,7 +31,7 @@ NOT_IMPLEMENTED: dict[str, str] = {}
 # 每回合写进 episodes.csv 的扰动列（排在最后）。无扰动时 perturb_kind=none、strength=0，其余列为空。
 PERTURB_COLUMNS = [
     "perturb_kind", "perturb_strength",
-    "push_step", "push_angle_deg", "push_status", "push_clip", "push_d_actual",
+    "push_step", "push_angle_deg", "push_status", "push_clip", "push_d_actual", "push_redraws",
     "cube_pre_x", "cube_pre_y", "cube_pre_z", "cube_post_x", "cube_post_y", "cube_post_z",
 ]
 # push_status 取值（skipped_lifted 只 aloha，skipped_overlap 只 PushT）
@@ -259,7 +259,7 @@ class PushCube(Perturbation):
             self.t_push.append(t)
             self.theta.append(th)
             self.rec.append(dict(push_step=t, push_angle_deg=round(math.degrees(th), 6), push_status=None,
-                                 push_clip="", push_d_actual=""))
+                                 push_clip="", push_d_actual="", push_redraws=""))   # push_redraws 只 PushT 用，ACT 留空
         if self._geom is None and env is not None:
             sim = self.sim_factory(env, 0)
             self._geom = dict(table_xy=sim.table_xy, table_top=sim.table_top, cube_half=sim.half,
@@ -430,8 +430,12 @@ class PushTee(Perturbation):
       - d == 0 → 不改仿真状态，记 zero（时刻和方向照样抽取并记录）；
       - 否则目标 = 推前 body 位置 + d·(cosθ, sinθ)，沿该方向截断到“T 形块整体在墙内（内缩 edge_margin）”
         （截断记 push_clip=wall，push_d_actual = 实际距离，可以是 0）；
-      - 截断后的新位置与智能体（圆）重叠（间隙 < overlap_margin）→ 这一回合不推，记 skipped_overlap（仿真不改）；
+      - 截断后的新位置与智能体（圆）重叠（间隙 < overlap_margin）→ 用同一回合的 Generator 重抽方向 θ（距离 d 不变，
+        重新截断、重新查重叠），最多 max_redraws=20 次（T8c；T8b 是直接跳过）；push_redraws = 实际重抽次数，
+        push_angle_deg = 最终用的方向。20 次重抽后仍重叠 → 记 skipped_overlap（仿真不改）；
       - 否则改 T 形块位置，线速度、角速度清零。
+    重抽的随机数接在 push_step、首个 θ 之后从同一个 Generator 取（每次一个 uniform[0,2π)），只由回合种子和智能体位置决定，
+    与 k、批内位置无关；不碰全局随机数。
     回合在 push_step 之前就结束（已经成功）→ not_reached。
     episodes.csv：cube_pre_x/y、cube_post_x/y = 推前 / 推后 T 形块 body 位置（PushT 坐标），cube_pre_z/post_z 留空。
     """
@@ -443,6 +447,7 @@ class PushTee(Perturbation):
         t_hi=80,              # 最早成功结束在第 82 步（10% 分位 110）-> 推的时候基线所有回合都还没完成
         edge_margin=0.0,      # T 形块顶点离墙内缘至少这么多（PushT 坐标）
         overlap_margin=0.0,   # 新位置与智能体的间隙 < 这个值视为重叠（0 = 几何上真正相交才算）
+        max_redraws=20,       # 新位置与智能体重叠时最多重抽方向几次；全重叠才记 skipped_overlap
     )
 
     def __init__(self, strength: float, params: dict | None = None, sim_factory=pusht_tee_sim):
@@ -453,23 +458,27 @@ class PushTee(Perturbation):
         p = dict(self.DEFAULTS, **params)
         p["t_lo"], p["t_hi"] = int(p["t_lo"]), int(p["t_hi"])
         p["edge_margin"], p["overlap_margin"] = float(p["edge_margin"]), float(p["overlap_margin"])
+        p["max_redraws"] = int(p["max_redraws"])
         if not (0 <= p["t_lo"] <= p["t_hi"]):
             raise ValueError(f"push 窗口必须 0 <= t_lo <= t_hi，收到 [{p['t_lo']}, {p['t_hi']}]")
+        if p["max_redraws"] < 0:
+            raise ValueError(f"max_redraws 必须 >= 0，收到 {p['max_redraws']}")
         super().__init__(strength, p)
         self.sim_factory = sim_factory
         self._geom = None
 
     def begin_batch(self, env, seeds) -> None:
         super().begin_batch(env, seeds)
-        self.t_push, self.theta, self.rec = [], [], []
+        self.t_push, self.theta, self.rec, self.rngs = [], [], [], []
         for s in self.seeds:
             rng = episode_rng(s, self.kind)
             t = int(rng.integers(self.params["t_lo"], self.params["t_hi"] + 1))
             th = float(rng.uniform(0.0, 2.0 * math.pi))
+            self.rngs.append(rng)       # 重抽方向继续用这个 Generator（状态在 push_step、首个方向之后）
             self.t_push.append(t)
             self.theta.append(th)
             self.rec.append(dict(push_step=t, push_angle_deg=round(math.degrees(th), 6), push_status=None,
-                                 push_clip="", push_d_actual=""))
+                                 push_clip="", push_d_actual="", push_redraws=""))
         if self._geom is None and env is not None:
             sim = self.sim_factory(env, 0)
             allv = np.vstack(sim.local_polys)
@@ -487,14 +496,23 @@ class PushTee(Perturbation):
         pre = sim.pose()
         d = self.strength
         if d == 0.0:
-            r.update(push_status="zero", push_d_actual=0.0)
+            r.update(push_status="zero", push_d_actual=0.0, push_redraws=0)
         else:
-            u = np.array([math.cos(self.theta[i]), math.sin(self.theta[i])])
             rect = tee_origin_rect(sim.world_polys(), pre[:2], sim.workspace, self.params["edge_margin"])
-            s = ray_clip(pre[:2], u, d, rect)
-            clip = "wall" if s < d - 1e-9 else ""
-            target = pre[:2] + s * u
-            gap = tee_agent_gap(sim.world_polys(target), sim.agent_xy(), sim.agent_radius)
+            th, redraws = self.theta[i], 0
+            while True:
+                u = np.array([math.cos(th), math.sin(th)])
+                s = ray_clip(pre[:2], u, d, rect)
+                clip = "wall" if s < d - 1e-9 else ""
+                target = pre[:2] + s * u
+                gap = tee_agent_gap(sim.world_polys(target), sim.agent_xy(), sim.agent_radius)
+                if gap >= self.params["overlap_margin"] or redraws >= self.params["max_redraws"]:
+                    break
+                # 重叠：用本回合自己的 Generator（接在 push_step、首个方向之后）重抽方向，距离 d 不变
+                th = float(self.rngs[i].uniform(0.0, 2.0 * math.pi))
+                redraws += 1
+            self.theta[i] = th
+            r.update(push_angle_deg=round(math.degrees(th), 6), push_redraws=redraws)
             if gap < self.params["overlap_margin"]:
                 r.update(push_status="skipped_overlap", push_clip=clip, push_d_actual=0.0)
             else:
@@ -515,9 +533,10 @@ class PushTee(Perturbation):
     def describe(self) -> dict:
         return dict(super().describe(), unit="PushT 坐标（0–512 画布；观测图 96×96，1 个观测像素 = 5.33 单位）",
                     geometry=self._geom,
-                    rng="numpy default_rng(SeedSequence([回合种子, crc32('push')]))；先抽 push_step 再抽角度",
+                    rng="numpy default_rng(SeedSequence([回合种子, crc32('push')]))；先抽 push_step 再抽角度，重叠时接着抽重抽的角度",
                     timing="第 push_step 步：策略已选好该步动作之后、env.step 之前平移 T 形块（不旋转，速度清零）",
-                    rules="先沿方向截断到 T 形块整体在墙内（clip=wall），再检查与智能体重叠（重叠 -> skipped_overlap，不推）")
+                    rules="先沿方向截断到 T 形块整体在墙内（clip=wall），再检查与智能体重叠（重叠 -> 同一 Generator 重抽方向，"
+                          "距离 d 不变，最多 max_redraws 次；仍重叠 -> skipped_overlap，不推）")
 
 
 # ----------------------------------------------------------------------------------------------

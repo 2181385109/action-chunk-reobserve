@@ -10,6 +10,7 @@
 D1 强度 0 = 无扰动：种子 0–49，B=50，k=8：push d=0（d1_d0）vs 基线 run_k8（不开扰动）逐回合一致
    （sum_reward、max_reward 允许 1e-9 以内的浮点差，其他非墙钟、非扰动列必须完全相同），整回合动作逐位相同。
    对照 d1_none_rerun：同一无扰动配置重跑一次，与 run_k8 比较（奖励列同样有 1 ulp 级差异 -> 与扰动钩子无关）。
+T8c：重叠时用同一回合的 Generator 重抽方向（最多 20 次）；D2 增加重抽次数分布和方向检查，另有新旧（v1_skip）对照。
 D2 扰动生效：d2_k8_dmax（k=8，d=最大档，种子 0–49，--log-traj，种子 D2_FRAME_SEEDS 每步存画面）：
    推的那一步 block_pose_after − block_pose 的长度 = push_d_actual（截断的 < d，其余 = d），角度不变，其他步不动；
    被跳过（skipped_overlap）的回合位姿不变。导出 2 个回合推前 / 推后 PNG。
@@ -29,10 +30,12 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from chunkre.metrics import TIME_COLUMNS, read_episodes, wilson_ci  # noqa: E402
-from chunkre.perturb import PERTURB_COLUMNS, polys_at, ray_clip, tee_agent_gap, tee_origin_rect  # noqa: E402
+from chunkre.perturb import (PERTURB_COLUMNS, PushTee, episode_rng, polys_at, ray_clip, tee_agent_gap,  # noqa: E402
+                             tee_origin_rect)
 
 BASE = ROOT / "results" / "t8_dp_baseline"
 OUT = ROOT / "results" / "t8_checks"
+V1 = OUT / "v1_skip"                 # T8b 旧版（重叠直接跳过）的检查结果，T8c 起留档对照
 D_LEVELS = (20.0, 40.0, 60.0)      # 建议档位（PushT 坐标），依据见 baseline.md / HANDOFF.md
 D_MAX = D_LEVELS[-1]
 D2_FRAME_SEEDS = (0, 1, 2, 3)      # 存画面的种子；PNG 从中取前 2 个真正推了的回合
@@ -245,7 +248,8 @@ def d2() -> dict:
     run = OUT / "d2_k8_dmax"
     rows = {int(r["seed"]): r for r in read_episodes(run / "episodes.csv")}
     n_pushed = n_clip = n_skip = n_nr = 0
-    max_err = max_ang = max_other = 0.0
+    max_err = max_ang = max_other = max_dir = 0.0
+    redraw_hist: dict[int, int] = {}
     bad = []
     for z in _load_traj(run):
         bp, ba = z["block_pose"].astype(np.float64), z["block_pose_after"].astype(np.float64)
@@ -255,6 +259,9 @@ def d2() -> dict:
             delta = ba[:n, i] - bp[:n, i]
             moved = np.flatnonzero(np.abs(delta).max(axis=1) > 0)
             st = r["push_status"]
+            if st != "not_reached":
+                nr_ = int(r["push_redraws"])
+                redraw_hist[nr_] = redraw_hist.get(nr_, 0) + 1
             if st == "pushed":
                 t = int(r["push_step"])
                 n_pushed += 1
@@ -266,6 +273,9 @@ def d2() -> dict:
                 err = abs(L - expect) if r["push_clip"] == "" else abs(L - d_act)
                 max_err = max(max_err, err)
                 max_ang = max(max_ang, abs(delta[t, 2]))
+                if L > 1.0:       # 位移方向 = 最终（重抽后）方向 push_angle_deg
+                    dth = math.atan2(delta[t, 1], delta[t, 0]) - math.radians(float(r["push_angle_deg"]))
+                    max_dir = max(max_dir, abs(math.atan2(math.sin(dth), math.cos(dth))))
                 others = [m for m in moved if m != t]
                 if others:
                     max_other = max(max_other, float(np.abs(delta[others]).max()))
@@ -279,7 +289,8 @@ def d2() -> dict:
     return dict(run=str(run.relative_to(ROOT)), d=D_MAX, n=len(rows), n_pushed=n_pushed, n_clipped_wall=n_clip,
                 n_skipped_overlap=n_skip, n_not_reached=n_nr, max_abs_len_error=max_err,
                 max_abs_angle_change=max_ang, max_change_at_other_steps=max_other, bad_seeds=bad,
-                passed=not bad and n_pushed > 0, pngs=d2_pngs(run, rows))
+                max_direction_error_rad=max_dir, redraw_hist=dict(sorted(redraw_hist.items())),
+                passed=not bad and n_pushed > 0 and max_dir < 1e-3, pngs=d2_pngs(run, rows))
 
 
 def d2_pngs(run: Path, rows: dict) -> list[str]:
@@ -311,9 +322,29 @@ def d2_pngs(run: Path, rows: dict) -> list[str]:
     return out
 
 
+def _replay(seed, pre, agent, ws, lp, R, d, max_redraws=20):
+    """离线重放 PushTee._push 的方向抽取：episode_rng 先抽 push_step、θ，重叠时继续抽 θ，最多 max_redraws 次。
+    返回 (skipped, 撞墙截断, 重抽次数)。"""
+    g = episode_rng(seed, "push")
+    g.integers(PushTee.DEFAULTS["t_lo"], PushTee.DEFAULTS["t_hi"] + 1)
+    th = float(g.uniform(0.0, 2.0 * math.pi))
+    polys = polys_at(lp, pre[2], pre[:2])
+    rect = tee_origin_rect(polys, pre[:2], ws)
+    n = 0
+    while True:
+        u = np.array([math.cos(th), math.sin(th)])
+        st = ray_clip(pre[:2], u, d, rect)
+        gap = tee_agent_gap(polys_at(lp, pre[2], pre[:2] + st * u), agent, R)
+        if gap >= 0 or n >= max_redraws:
+            return gap < 0, st < d - 1e-9, n
+        th = float(g.uniform(0.0, 2.0 * math.pi))
+        n += 1
+
+
 def skip_estimate() -> dict:
-    """离线估算三档 d 下 k=8 的截断 / 跳过数：同一种子、同一 k，推之前的轨迹与 d 无关（推的时刻和方向也只由种子决定），
-    所以用 D2 轨迹里推那一步的 T 形块位姿和智能体位置，对每档 d 重放“截断 → 重叠检查”。d=最大档必须与实际运行逐回合一致。"""
+    """离线估算三档 d 下 k=8 的截断 / 跳过 / 重抽数：同一种子、同一 k，推之前的轨迹与 d 无关（推的时刻和方向也只由种子决定），
+    所以用 D2 轨迹里推那一步的 T 形块位姿和智能体位置，对每档 d 重放“抽方向 → 截断 → 重叠检查 → 重抽”。
+    d=最大档的 skipped_overlap、重抽次数必须与实际运行逐回合一致。同时给出“不重抽”（= T8b 旧规则）的跳过数。"""
     geo = json.loads((BASE / "baseline.json").read_text(encoding="utf-8"))["geometry"]
     lp = [np.array(p) for p in geo["tee_rects_local"]]
     ws, R = geo["workspace_inner"], geo["agent_radius"]
@@ -321,29 +352,32 @@ def skip_estimate() -> dict:
     rows = {int(r["seed"]): r for r in read_episodes(run / "episodes.csv")}
     res, mismatch = {}, []
     for d in D_LEVELS:
-        sk = cl = n_contact = sk_contact = 0
+        sk = cl = n_contact = sk_contact = sk_v1 = n_redrawn = 0
+        hist: dict[int, int] = {}
         for z in _load_traj(run):
             for i, s in enumerate(z["seeds"]):
                 r = rows[int(s)]
                 if r["push_status"] == "not_reached":
                     continue
-                t, th = int(r["push_step"]), math.radians(float(r["push_angle_deg"]))
+                t = int(r["push_step"])
                 bp, ap = z["block_pose"][t, i].astype(np.float64), z["agent_pos"][t, i].astype(np.float64)
-                polys = polys_at(lp, bp[2], bp[:2])
-                u = np.array([math.cos(th), math.sin(th)])
-                st = ray_clip(bp[:2], u, d, tee_origin_rect(polys, bp[:2], ws))
-                skip = tee_agent_gap(polys_at(lp, bp[2], bp[:2] + st * u), ap, R) < 0
-                contact = tee_agent_gap(polys, ap, R) <= CONTACT_TOL
-                cl += int(st < d - 1e-9)
+                skip, clip, n = _replay(int(s), bp, ap, ws, lp, R, d)
+                skip1, _, _ = _replay(int(s), bp, ap, ws, lp, R, d, max_redraws=0)
+                contact = tee_agent_gap(polys_at(lp, bp[2], bp[:2]), ap, R) <= CONTACT_TOL
+                cl += int(clip)
                 sk += int(skip)
+                sk_v1 += int(skip1)
+                n_redrawn += int(n > 0)
+                hist[n] = hist.get(n, 0) + 1
                 n_contact += int(contact)
                 sk_contact += int(skip and contact)
-                if d == D_MAX and skip != (r["push_status"] == "skipped_overlap"):
+                if d == D_MAX and (skip != (r["push_status"] == "skipped_overlap") or n != int(r["push_redraws"])):
                     mismatch.append(int(s))
-        res[f"d{d:g}"] = dict(skipped_overlap=sk, clipped_wall=cl, in_contact_at_push=n_contact,
-                              skipped_while_in_contact=sk_contact)
+        res[f"d{d:g}"] = dict(skipped_overlap=sk, skipped_if_no_redraw=sk_v1, redrawn=n_redrawn,
+                              redraw_hist=dict(sorted(hist.items())), clipped_wall=cl,
+                              in_contact_at_push=n_contact, skipped_while_in_contact=sk_contact)
     return dict(run=str(run.relative_to(ROOT)), n=len(rows), levels=res, mismatch_vs_actual_at_dmax=mismatch,
-                note="轨迹为 float32，重放只作估算；d=最大档与实际运行逐回合比对")
+                note="轨迹为 float32，重放只作估算；d=最大档与实际运行逐回合比对（skipped_overlap 和重抽次数）")
 
 
 def d3() -> dict:
@@ -383,6 +417,25 @@ def analyze() -> None:
     print(md)
 
 
+def v1_compare_md(o: dict) -> list[str]:
+    """T8b 旧版（重叠直接跳过，results/t8_checks/v1_skip）与新版（重抽）的实际运行数字对照。"""
+    f = V1 / "checks.json"
+    if not f.exists():
+        return []
+    v1 = json.loads(f.read_text(encoding="utf-8"))
+    L = ["### 新旧对照（实际运行，d=60，种子 0–49）", "",
+         "| k | 旧 skipped_overlap | 新 skipped_overlap | 旧推了 | 新推了 | 旧成功 | 新成功 |", "|---|---|---|---|---|---|---|"]
+    for k in (4, 8, 15):
+        name = f"k{k}_dmax"
+        if name in v1["d3"] and name in o["d3"]:
+            a, b = v1["d3"][name], o["d3"][name]
+            L.append(f"| {k} | {a['push_status'].get('skipped_overlap', 0)} | {b['push_status'].get('skipped_overlap', 0)} | "
+                     f"{a['push_status'].get('pushed', 0)} | {b['push_status'].get('pushed', 0)} | "
+                     f"{a['n_success']}/{a['n']} | {b['n_success']}/{b['n']} |")
+    L.append("")
+    return L
+
+
 def checks_md(o: dict) -> str:
     a, b, c = o["d1"]["main"], o["d2"], o["d3"]
     ctl = o["d1"]["control_none_vs_none"]
@@ -409,14 +462,19 @@ def checks_md(o: dict) -> str:
          f"not_reached {b['n_not_reached']}（共 {b['n']}）",
          f"- 推的那一步位移长度与期望（未截断 = d，截断 = push_d_actual）的最大误差 {b['max_abs_len_error']:.2e}"
          f"（轨迹为 float32）；最大转角变化 {b['max_abs_angle_change']:g}；其他步 after−before 最大 {b['max_change_at_other_steps']:g}",
+         f"- 重抽次数分布（推了或被跳过的回合，共 {sum(b['redraw_hist'].values())} 个）：{b['redraw_hist']}；"
+         f"推后位移方向与记录的最终方向 push_angle_deg 的最大差 {b['max_direction_error_rad']:.2e} rad",
          f"- 不合格种子：{b['bad_seeds'] or '无'}",
          "- 推前推后对比图：" + "、".join(f"`{p}`" for p in b["pngs"]), "",
-         "### 三档 d 的截断 / 跳过数（k=8，用 D2 轨迹离线重放；d=最大档与实际运行逐回合一致："
+         "### 三档 d 的截断 / 跳过 / 重抽数（k=8，用 D2 轨迹离线重放；d=最大档的跳过和重抽次数与实际运行逐回合一致："
          f"{'是' if not o['skip_estimate']['mismatch_vs_actual_at_dmax'] else '否 ' + str(o['skip_estimate']['mismatch_vs_actual_at_dmax'])}）", "",
-         "| d | skipped_overlap | 撞墙截断 | 推的时候智能体正贴着 T | 其中被跳过 |", "|---|---|---|---|---|",
-         *[f"| {k[1:]} | {v['skipped_overlap']}/{o['skip_estimate']['n']} | {v['clipped_wall']} | {v['in_contact_at_push']} | "
-           f"{v['skipped_while_in_contact']} |" for k, v in o['skip_estimate']['levels'].items()],
+         "| d | skipped_overlap（新，重抽后） | 若不重抽（= 旧规则）的 skipped_overlap | 重抽过的回合 | 重抽次数分布 | 撞墙截断 | 推时贴着 T | 其中仍被跳过 |",
+         "|---|---|---|---|---|---|---|---|",
+         *[f"| {k[1:]} | {v['skipped_overlap']}/{o['skip_estimate']['n']} | {v['skipped_if_no_redraw']} | {v['redrawn']} | "
+           f"{v['redraw_hist']} | {v['clipped_wall']} | {v['in_contact_at_push']} | {v['skipped_while_in_contact']} |"
+           for k, v in o['skip_estimate']['levels'].items()],
          "",
+         *v1_compare_md(o),
          "## D3 粗看（只看方向，不作结论）", "",
          "| 格子 | 成功 | 成功率 [Wilson 95%] | 平均 max_reward | 推的状态 |", "|---|---|---|---|---|"]
     for name in ("k4_none", "k4_dmax", "k8_none", "k8_dmax", "k15_none", "k15_dmax"):

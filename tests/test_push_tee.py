@@ -207,7 +207,7 @@ def test_push_tee_skips_when_new_position_overlaps_agent():
     # T 在 (256,256) 角度 0；智能体在横条右侧，间隙 5：往 +x 推 40 会重叠 -> skipped_overlap；往 -x 推 -> pushed
     def run_dir(theta_deg, agent):
         sim = FakeTeeSim(xy=(256.0, 256.0), angle=0.0, agent=agent)
-        p = make_push(40.0)
+        p = make_push(40.0, max_redraws=0)       # T8b 行为：不重抽，重叠直接跳过
         p.begin_batch(FakeEnv([sim]), [0])
         p.theta = [math.radians(theta_deg)]
         p.on_state(p.t_push[0], FakeEnv([sim]), np.array([True]))
@@ -224,7 +224,7 @@ def test_push_tee_skips_when_new_position_overlaps_agent():
     assert tee_agent_gap(sim.world_polys(), sim.agent_xy(), AGENT_R) == pytest.approx(1.0)
     # 只看落点：T 整个越过智能体（推 200，智能体在起点和终点之间）但落点不重叠 -> 照推
     sim = FakeTeeSim(xy=(150.0, 256.0), angle=0.0, agent=(240.0, 271.0))
-    p = make_push(200.0)
+    p = make_push(200.0, max_redraws=0)
     p.begin_batch(FakeEnv([sim]), [0])
     p.theta = [0.0]
     p.on_state(p.t_push[0], FakeEnv([sim]), np.array([True]))
@@ -245,7 +245,7 @@ def test_push_tee_overlap_checked_after_wall_clip():
     # 推前间隙 0.6（不重叠），截断后的位置与智能体重叠 -> 跳过，且仍记录截断
     sim2 = FakeTeeSim(xy=(430.0, 200.0), angle=0.0, agent=(502.0, 240.0))
     assert tee_agent_gap(sim2.world_polys(), sim2.agent_xy(), AGENT_R) > 0
-    p2 = make_push(80.0)
+    p2 = make_push(80.0, max_redraws=0)
     env2 = FakeEnv([sim2])
     p2.begin_batch(env2, [0])
     p2.theta = [0.0]
@@ -264,6 +264,106 @@ def test_push_tee_not_reached_and_exactly_once():
     assert set(p.episode_info(0)) <= set(PERTURB_COLUMNS)
     assert set(p.episode_info(1)) == set(PERTURB_COLUMNS)
     assert {p.episode_info(i)["push_status"] for i in range(2)} <= set(PUSH_STATUS)
+
+
+# ----------------------------------------------------------------------------------------------
+# T8c：重叠时重抽方向
+# ----------------------------------------------------------------------------------------------
+BLOCKED_AGENT = (256.0 + 60 + 15 + 5, 271.0)     # T 在 (256,256) 角度 0：横条右端外 5 处，往右推 40 必重叠
+
+
+def expected_redraws(seed, d, xy=(256.0, 256.0), angle=0.0, agent=BLOCKED_AGENT, max_redraws=20):
+    """独立复现：episode_rng 先抽 push_step、θ，再依次抽重抽的 θ，直到不重叠（不含墙截断的情形）。"""
+    g = episode_rng(seed, "push")
+    g.integers(PushTee.DEFAULTS["t_lo"], PushTee.DEFAULTS["t_hi"] + 1)
+    th = float(g.uniform(0.0, 2.0 * math.pi))
+    for n in range(max_redraws + 1):
+        target = np.array(xy) + d * np.array([math.cos(th), math.sin(th)])
+        if tee_agent_gap(polys_at(TEE_LOCAL, angle, target), agent, AGENT_R) >= 0:
+            return n, th
+        if n == max_redraws:
+            return n, th
+        th = float(g.uniform(0.0, 2.0 * math.pi))
+
+
+def run_redraw(seeds, d=40.0, **params):
+    sims = [FakeTeeSim(xy=(256.0, 256.0), angle=0.0, agent=BLOCKED_AGENT) for _ in seeds]
+    p = make_push(d, **params)
+    run_episode(p, FakeEnv(sims, seeds=list(seeds)))
+    return p, sims
+
+
+def test_push_tee_redraw_is_deterministic_and_follows_episode_rng_stream():
+    seeds = list(range(40))
+    p1, sims = run_redraw(seeds)
+    p2, _ = run_redraw(seeds[::-1])                 # 批内顺序不同
+    n_redrawn = 0
+    for j, s in enumerate(seeds):
+        a, b = p1.episode_info(j), p2.episode_info(len(seeds) - 1 - j)
+        assert a == b                                # 同一种子 -> 同样的重抽序列和结果
+        n, th = expected_redraws(s, 40.0)
+        assert a["push_redraws"] == n
+        assert a["push_angle_deg"] == round(math.degrees(th), 6)
+        assert a["push_status"] == "pushed"
+        # 位移仍是 d，方向 = 最终方向，且落点不与智能体重叠
+        post = np.array([a["cube_post_x"], a["cube_post_y"]])
+        assert np.linalg.norm(post - 256.0) == pytest.approx(40.0, abs=1e-9)
+        assert tee_agent_gap(sims[j].world_polys(), sims[j].agent_xy(), AGENT_R) >= 0
+        n_redrawn += n > 0
+    assert 0 < n_redrawn < len(seeds)                # 有的回合重抽，有的一次就过
+    # 重抽次数与 k 无关：只由种子和几何决定 -> 同样的种子再跑一次（新对象）完全一样
+    p3, _ = run_redraw(seeds)
+    assert [p3.episode_info(j) for j in range(len(seeds))] == [p1.episode_info(j) for j in range(len(seeds))]
+
+
+def test_push_tee_redraw_cap_is_20_then_skipped():
+    # d=5，智能体圆心在竖条正中：往任何方向平移 5 都还重叠 -> 用满 20 次重抽后 skipped_overlap
+    def blocked(seed, **params):
+        sim = FakeTeeSim(xy=(256.0, 256.0), angle=0.0, agent=(256.0, 330.0))
+        p = make_push(5.0, **params)
+        run_episode(p, FakeEnv([sim], seeds=[seed]))
+        return p.episode_info(0), sim
+
+    r, sim = blocked(7)
+    assert r["push_status"] == "skipped_overlap" and r["push_redraws"] == 20 and r["push_d_actual"] == 0.0
+    assert sim.n_set == 0 and np.all(sim.vel == [3.0, -2.0, 0.5])
+    assert (r["cube_pre_x"], r["cube_pre_y"]) == (r["cube_post_x"], r["cube_post_y"])
+    g = episode_rng(7, "push")
+    g.integers(20, 81)
+    th = float(g.uniform(0.0, 2.0 * math.pi))
+    for _ in range(20):
+        th = float(g.uniform(0.0, 2.0 * math.pi))     # 第 20 次重抽的方向 = 最后试的方向
+    assert r["push_angle_deg"] == round(math.degrees(th), 6)
+    r, _ = blocked(7, max_redraws=3)
+    assert r["push_status"] == "skipped_overlap" and r["push_redraws"] == 3
+    r, _ = blocked(7, max_redraws=0)
+    assert r["push_status"] == "skipped_overlap" and r["push_redraws"] == 0
+
+
+def test_push_tee_redraw_does_not_touch_global_random_state():
+    import torch
+
+    random.seed(1)
+    np.random.seed(2)
+    torch.manual_seed(3)
+    before = (random.getstate(), np.random.get_state(), torch.get_rng_state().clone())
+    p, _ = run_redraw(list(range(30)))
+    assert max(p.episode_info(j)["push_redraws"] for j in range(30)) > 0     # 确实发生了重抽
+    after = (random.getstate(), np.random.get_state(), torch.get_rng_state().clone())
+    assert before[0] == after[0]
+    assert all(np.array_equal(x, y) if isinstance(x, np.ndarray) else x == y for x, y in zip(before[1], after[1]))
+    assert torch.equal(before[2], after[2])
+
+
+def test_push_tee_redraws_zero_when_no_overlap_and_blank_when_not_reached():
+    sims = [FakeTeeSim(), FakeTeeSim(), FakeTeeSim()]
+    p = make_push(0.0)
+    run_episode(p, FakeEnv(sims))
+    assert [p.episode_info(i)["push_redraws"] for i in range(3)] == [0, 0, 0]       # d=0：zero，不重抽
+    p = make_push(40.0)
+    run_episode(p, FakeEnv([FakeTeeSim(), FakeTeeSim()], seeds=[3, 4]), alive_until=[5, 300])
+    assert p.episode_info(0)["push_redraws"] == ""                                  # not_reached
+    assert p.episode_info(1)["push_redraws"] == 0                                   # 智能体远，首个方向就过
 
 
 # ----------------------------------------------------------------------------------------------

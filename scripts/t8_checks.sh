@@ -1,9 +1,10 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T8b checks D1-D3 (DP / PushT push-T; results in results/t8_checks/, see scripts/t8_checks.py). ~15 min, 3 parallel chains.
+# T8b/T8c checks D1-D3 (DP / PushT push-T; results in results/t8_checks/, see scripts/t8_checks.py). ~15 min, 3 parallel chains.
 #  A) D1: k=8 push d=0 (--log-traj) ; then D3 k=15 none / d=DMAX
 #  B) D2: k=8 d=DMAX (--log-traj, frames for seeds 0-3 every step) ; then D3 k=4 d=DMAX
-#  C) D3: k=4 none
+#  C) D3: k=4 none ; then D1 control: k=8 none rerun (shows 1-ulp reward noise is not from the hook)
+# T8c: PushT push redraws the direction on overlap (max 20); v1 (skip on overlap) results are in $OUT/v1_skip.
 # Baseline (no perturbation, k=8, seeds 0-49, --log-traj) = results/t8_dp_baseline/run_k8 (step 1).
 set -o pipefail
 source scripts/env.sh
@@ -21,7 +22,8 @@ PA=$!
 ( $EV --k 8 --perturb-strength $DMAX --log-traj --save-frames 0,1,2,3 --frame-every 1 --out $OUT/d2_k8_dmax \
   && $EV --k 4 --perturb-strength $DMAX --out $OUT/d3_k4_dmax ) 2>&1 | grep -v -E "$FILTER" > $OUT/chain_b.log &
 PB=$!
-( $NONE --k 4 --out $OUT/d3_k4_none ) 2>&1 | grep -v -E "$FILTER" > $OUT/chain_c.log &
+( $NONE --k 4 --out $OUT/d3_k4_none \
+  && $NONE --k 8 --out $OUT/d1_none_rerun ) 2>&1 | grep -v -E "$FILTER" > $OUT/chain_c.log &
 PC=$!
 
 fail=0
