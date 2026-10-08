@@ -1,0 +1,10 @@
+# T8b DP 试跑格子 k8__noise4（由 scripts/pilot_tools.py --grid dp gen 生成，不要手改）
+name: k8__noise4
+model: dp
+seeds: 5000-5049
+batch_size: 50
+mode: fixed
+k: 8
+perturb:
+  kind: obs_noise
+  strength: 4

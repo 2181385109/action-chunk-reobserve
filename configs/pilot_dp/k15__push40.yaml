@@ -1,0 +1,13 @@
+# T8b DP 试跑格子 k15__push40（由 scripts/pilot_tools.py --grid dp gen 生成，不要手改）
+name: k15__push40
+model: dp
+seeds: 5000-5049
+batch_size: 50
+mode: fixed
+k: 15
+perturb:
+  kind: push
+  strength: 40
+  params:
+    t_lo: 20
+    t_hi: 80

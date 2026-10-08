@@ -1,0 +1,13 @@
+# T8b DP 试跑格子 k8__push60（由 scripts/pilot_tools.py --grid dp gen 生成，不要手改）
+name: k8__push60
+model: dp
+seeds: 5000-5049
+batch_size: 50
+mode: fixed
+k: 8
+perturb:
+  kind: push
+  strength: 60
+  params:
+    t_lo: 20
+    t_hi: 80

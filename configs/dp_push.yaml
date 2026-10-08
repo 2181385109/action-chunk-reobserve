@@ -1,0 +1,13 @@
+# T8b: DP (PushT) + push the T block mid-episode. Strength d (PushT units, 0-512 canvas) via --perturb-strength.
+# Suggested levels 20 / 40 / 60 (1/6, 1/3, 1/2 of the 120-unit T); rationale in HANDOFF.md
+model: dp
+seeds: 0-49
+batch_size: 50
+mode: fixed
+k: 8
+perturb:
+  kind: push
+  strength: 60
+  params:
+    t_lo: 20      # push step ~ uniform integer in [t_lo, t_hi]; basis: results/t8_dp_baseline/baseline.md
+    t_hi: 80

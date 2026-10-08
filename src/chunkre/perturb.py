@@ -1,6 +1,6 @@
 """扰动框架（T4）：在统一评估的逐步循环里注入可控扰动。
 
-已实现：push（推方块，T4，只 aloha）、obs_noise（相机图像高斯噪声，T5）、action_delay（动作延迟 d 步，T5）。
+已实现：push（推方块，T4，aloha；T8b 起 PushT 推 T 形块，见 PushTee）、obs_noise（相机图像高斯噪声，T5）、action_delay（动作延迟 d 步，T5）。
 
 一个扰动对象有三个钩子（默认都是“原样返回 / 什么都不做”）：
   on_obs(t, obs, alive)    -> obs      改策略在第 t 步看到的观测（观测噪声；动作延迟也在第 0 步从这里读保持位置）
@@ -34,8 +34,8 @@ PERTURB_COLUMNS = [
     "push_step", "push_angle_deg", "push_status", "push_clip", "push_d_actual",
     "cube_pre_x", "cube_pre_y", "cube_pre_z", "cube_post_x", "cube_post_y", "cube_post_z",
 ]
-# push_status 取值
-PUSH_STATUS = ("pushed", "zero", "skipped_lifted", "not_reached")
+# push_status 取值（skipped_lifted 只 aloha，skipped_overlap 只 PushT）
+PUSH_STATUS = ("pushed", "zero", "skipped_lifted", "skipped_overlap", "not_reached")
 
 
 def episode_rng(seed: int, kind: str) -> np.random.Generator:
@@ -73,8 +73,10 @@ def make_perturbation(spec, model: str | None = None) -> "Perturbation":
     if s["kind"] == "none":
         return Perturbation()
     if s["kind"] == "push":
+        if model == "dp":
+            return PushTee(s["strength"], s["params"])      # T8b：PushT 推 T 形块（单位：PushT 坐标）
         if model is not None and model != "act":
-            raise ValueError("push（推方块）目前只实现了 aloha（model=act）；PushT 版本留到第 8 天")
+            raise ValueError(f"push 只实现了 act（aloha 推方块）和 dp（PushT 推 T 形块），收到 model={model!r}")
         return PushCube(s["strength"], s["params"])
     if s["kind"] == "obs_noise":
         return ObsNoise(s["strength"], s["params"])
@@ -314,6 +316,208 @@ class PushCube(Perturbation):
         return dict(super().describe(), allowed_rect_xy=self._rect, geometry=self._geom,
                     rng="numpy default_rng(SeedSequence([回合种子, crc32('push')]))；先抽 push_step 再抽角度",
                     timing="第 push_step 步：策略已选好该步动作之后、env.step 之前改方块位置")
+
+
+# ----------------------------------------------------------------------------------------------
+# 推 T 形块（PushT，T8b）
+# ----------------------------------------------------------------------------------------------
+class TeeSim:
+    """PushT 一个子环境里“T 形块 + 智能体 + 四面墙”的访问适配器（pymunk）。单元测试用假的替代。
+
+    坐标单位都是 PushT 坐标（0–512，与动作、agent_pos 相同）。T 形块的位置 = pymunk body 的 position（body 原点，
+    即横条下边的中点，不是重心）；只改 position 就是整体平移，角度不变。
+    """
+
+    def __init__(self, penv):
+        import pymunk
+
+        self.env = penv
+        self.block = penv.block
+        self.agent = penv.agent
+        self.agent_radius = float(next(iter(self.agent.shapes)).radius)
+        self.local_polys = [np.array([(v.x, v.y) for v in sh.get_vertices()], dtype=np.float64)
+                            for sh in self.block.shapes]
+        # 工作区 = 四面墙（静态线段，半径 r）围出的内部：x、y 都在 [最小端点 + r, 最大端点 − r]
+        segs = [sh for sh in penv.space.shapes
+                if isinstance(sh, pymunk.Segment) and sh.body is penv.space.static_body]
+        if not segs:
+            raise RuntimeError("PushT：没找到墙（静态线段）")
+        xs = [c for sh in segs for c in (sh.a.x, sh.b.x)]
+        ys = [c for sh in segs for c in (sh.a.y, sh.b.y)]
+        r = max(float(sh.radius) for sh in segs)
+        self.workspace = (min(xs) + r, max(xs) - r, min(ys) + r, max(ys) - r)
+
+    def pose(self) -> np.ndarray:
+        b = self.block
+        return np.array([b.position[0], b.position[1], b.angle], dtype=np.float64)
+
+    def agent_xy(self) -> np.ndarray:
+        return np.array([self.agent.position[0], self.agent.position[1]], dtype=np.float64)
+
+    def world_polys(self, xy=None) -> list[np.ndarray]:
+        """T 形块两个矩形的世界坐标顶点（每个 (4, 2)）；给了 xy 时按“角度不变、body 位置 = xy”计算（不改仿真）。"""
+        x, y, a = self.pose()
+        if xy is not None:
+            x, y = float(xy[0]), float(xy[1])
+        return polys_at(self.local_polys, a, (x, y))
+
+    def set_xy(self, xy) -> None:
+        """平移 T 形块到 body 位置 xy（角度不变），线速度、角速度清零。"""
+        self.block.position = (float(xy[0]), float(xy[1]))
+        self.block.velocity = (0.0, 0.0)
+        self.block.angular_velocity = 0.0
+        self.env.space.reindex_shapes_for_body(self.block)
+
+
+def pusht_tee_sim(env, i: int) -> TeeSim:
+    return TeeSim(env.envs[i].unwrapped)
+
+
+def polys_at(local_polys, angle: float, xy) -> list[np.ndarray]:
+    """局部顶点 -> 世界顶点：先绕 body 原点转 angle，再平移 xy（与 pymunk 的 local_to_world 一致）。"""
+    c, s = math.cos(angle), math.sin(angle)
+    R = np.array([[c, -s], [s, c]])
+    return [np.asarray(p, dtype=np.float64) @ R.T + np.asarray(xy, dtype=np.float64) for p in local_polys]
+
+
+def point_convex_polygon_distance(p, verts) -> float:
+    """点到凸多边形（顶点按顺序，顺 / 逆时针都可）的距离；点在多边形内（含边上）返回 0。"""
+    p = np.asarray(p, dtype=np.float64)
+    v = np.asarray(verts, dtype=np.float64)
+    n = len(v)
+    cross = np.empty(n)
+    best = math.inf
+    for j in range(n):
+        a, b = v[j], v[(j + 1) % n]
+        e = b - a
+        w = p - a
+        cross[j] = e[0] * w[1] - e[1] * w[0]
+        t = min(1.0, max(0.0, float(np.dot(w, e) / np.dot(e, e))))
+        best = min(best, float(np.linalg.norm(w - t * e)))
+    if np.all(cross >= -1e-12) or np.all(cross <= 1e-12):
+        return 0.0
+    return best
+
+
+def tee_agent_gap(polys, agent_xy, agent_radius: float) -> float:
+    """T 形块与圆形智能体的间隙 = 圆心到 T 形块的距离 − 半径（< 0 表示重叠）。"""
+    return min(point_convex_polygon_distance(agent_xy, p) for p in polys) - float(agent_radius)
+
+
+def tee_origin_rect(polys, origin, workspace, margin: float = 0.0) -> tuple[float, float, float, float]:
+    """T 形块整体留在工作区（内缩 margin）内时，body 原点允许落在的矩形 (xmin, xmax, ymin, ymax)。
+
+    平移不改变顶点相对原点的位置，所以 = 工作区按“顶点包围盒相对原点的偏移”内缩。
+    T 形块此刻已经略微压进墙里（物理接触的穿透）时，把当前位置也算进允许范围：
+    这样“往墙里推”被截断为 0，“往外推”不受影响（否则 ray_clip 见起点在矩形外会直接返回 0）。
+    """
+    allv = np.vstack(polys)
+    ox, oy = float(origin[0]), float(origin[1])
+    x0, x1, y0, y1 = workspace
+    lo_x = x0 + margin - (allv[:, 0].min() - ox)
+    hi_x = x1 - margin - (allv[:, 0].max() - ox)
+    lo_y = y0 + margin - (allv[:, 1].min() - oy)
+    hi_y = y1 - margin - (allv[:, 1].max() - oy)
+    return (min(lo_x, ox), max(hi_x, ox), min(lo_y, oy), max(hi_y, oy))
+
+
+class PushTee(Perturbation):
+    """PushT：回合中途把 T 形块沿随机水平方向平移距离 d = strength（PushT 坐标，0–512 画布），不旋转，速度清零。
+
+    每回合（独立随机数 episode_rng(种子, "push")，先抽时刻再抽方向，顺序固定，与 PushCube 相同）：
+      push_step ~ 均匀整数 [t_lo, t_hi]；角度 θ ~ 均匀 [0, 2π)（从 +x 轴转向 +y 轴）。
+    在第 push_step 步（只对仍在进行的回合）：
+      - d == 0 → 不改仿真状态，记 zero（时刻和方向照样抽取并记录）；
+      - 否则目标 = 推前 body 位置 + d·(cosθ, sinθ)，沿该方向截断到“T 形块整体在墙内（内缩 edge_margin）”
+        （截断记 push_clip=wall，push_d_actual = 实际距离，可以是 0）；
+      - 截断后的新位置与智能体（圆）重叠（间隙 < overlap_margin）→ 这一回合不推，记 skipped_overlap（仿真不改）；
+      - 否则改 T 形块位置，线速度、角速度清零。
+    回合在 push_step 之前就结束（已经成功）→ not_reached。
+    episodes.csv：cube_pre_x/y、cube_post_x/y = 推前 / 推后 T 形块 body 位置（PushT 坐标），cube_pre_z/post_z 留空。
+    """
+
+    kind = "push"
+    touches_state = True
+    DEFAULTS = dict(
+        t_lo=20,              # 窗口（含两端）。依据见 HANDOFF.md 和 results/t8_dp_baseline/baseline.md：k=8 种子 0–49 首次碰到 T 中位 21.5 步，
+        t_hi=80,              # 最早成功结束在第 82 步（10% 分位 110）-> 推的时候基线所有回合都还没完成
+        edge_margin=0.0,      # T 形块顶点离墙内缘至少这么多（PushT 坐标）
+        overlap_margin=0.0,   # 新位置与智能体的间隙 < 这个值视为重叠（0 = 几何上真正相交才算）
+    )
+
+    def __init__(self, strength: float, params: dict | None = None, sim_factory=pusht_tee_sim):
+        params = dict(params or {})
+        unknown = set(params) - set(self.DEFAULTS)
+        if unknown:
+            raise ValueError(f"push（PushT）的未知参数：{sorted(unknown)}；可用 {sorted(self.DEFAULTS)}")
+        p = dict(self.DEFAULTS, **params)
+        p["t_lo"], p["t_hi"] = int(p["t_lo"]), int(p["t_hi"])
+        p["edge_margin"], p["overlap_margin"] = float(p["edge_margin"]), float(p["overlap_margin"])
+        if not (0 <= p["t_lo"] <= p["t_hi"]):
+            raise ValueError(f"push 窗口必须 0 <= t_lo <= t_hi，收到 [{p['t_lo']}, {p['t_hi']}]")
+        super().__init__(strength, p)
+        self.sim_factory = sim_factory
+        self._geom = None
+
+    def begin_batch(self, env, seeds) -> None:
+        super().begin_batch(env, seeds)
+        self.t_push, self.theta, self.rec = [], [], []
+        for s in self.seeds:
+            rng = episode_rng(s, self.kind)
+            t = int(rng.integers(self.params["t_lo"], self.params["t_hi"] + 1))
+            th = float(rng.uniform(0.0, 2.0 * math.pi))
+            self.t_push.append(t)
+            self.theta.append(th)
+            self.rec.append(dict(push_step=t, push_angle_deg=round(math.degrees(th), 6), push_status=None,
+                                 push_clip="", push_d_actual=""))
+        if self._geom is None and env is not None:
+            sim = self.sim_factory(env, 0)
+            allv = np.vstack(sim.local_polys)
+            self._geom = dict(workspace=list(sim.workspace), agent_radius=sim.agent_radius,
+                              tee_local_bbox=[float(allv[:, 0].min()), float(allv[:, 0].max()),
+                                              float(allv[:, 1].min()), float(allv[:, 1].max())])
+
+    def on_state(self, t: int, env, alive: np.ndarray) -> None:
+        for i in np.flatnonzero(alive):
+            if t == self.t_push[i] and self.rec[i]["push_status"] is None:
+                self._push(self.sim_factory(env, int(i)), int(i))
+
+    def _push(self, sim, i: int) -> None:
+        r = self.rec[i]
+        pre = sim.pose()
+        d = self.strength
+        if d == 0.0:
+            r.update(push_status="zero", push_d_actual=0.0)
+        else:
+            u = np.array([math.cos(self.theta[i]), math.sin(self.theta[i])])
+            rect = tee_origin_rect(sim.world_polys(), pre[:2], sim.workspace, self.params["edge_margin"])
+            s = ray_clip(pre[:2], u, d, rect)
+            clip = "wall" if s < d - 1e-9 else ""
+            target = pre[:2] + s * u
+            gap = tee_agent_gap(sim.world_polys(target), sim.agent_xy(), sim.agent_radius)
+            if gap < self.params["overlap_margin"]:
+                r.update(push_status="skipped_overlap", push_clip=clip, push_d_actual=0.0)
+            else:
+                sim.set_xy(target)
+                r.update(push_status="pushed", push_clip=clip, push_d_actual=float(s))
+        post = sim.pose()
+        r.update(cube_pre_x=pre[0], cube_pre_y=pre[1], cube_pre_z="",
+                 cube_post_x=post[0], cube_post_y=post[1], cube_post_z="")
+
+    def end_batch(self, steps) -> None:
+        for r in self.rec:
+            if r["push_status"] is None:
+                r["push_status"] = "not_reached"
+
+    def episode_info(self, i: int) -> dict:
+        return dict(super().episode_info(i), **self.rec[i])
+
+    def describe(self) -> dict:
+        return dict(super().describe(), unit="PushT 坐标（0–512 画布；观测图 96×96，1 个观测像素 = 5.33 单位）",
+                    geometry=self._geom,
+                    rng="numpy default_rng(SeedSequence([回合种子, crc32('push')]))；先抽 push_step 再抽角度",
+                    timing="第 push_step 步：策略已选好该步动作之后、env.step 之前平移 T 形块（不旋转，速度清零）",
+                    rules="先沿方向截断到 T 形块整体在墙内（clip=wall），再检查与智能体重叠（重叠 -> skipped_overlap，不推）")
 
 
 # ----------------------------------------------------------------------------------------------

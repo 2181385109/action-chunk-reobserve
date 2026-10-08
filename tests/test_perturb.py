@@ -291,8 +291,10 @@ def test_config_perturb_defaults_and_model_check():
                                                        "params": {"t_lo": 20, "t_hi": 100}})
     assert c.to_dict()["perturb"] == c2.to_dict()["perturb"]
     assert not EvalConfig(model="act", seeds="0-9").perturb_active
+    # T8b 起 dp 的 push = PushT 推 T 形块（PushTee，见 tests/test_push_tee.py），aloha 专用参数在 dp 上报错
     with pytest.raises(ValueError):
-        EvalConfig(model="dp", seeds="0-9", perturb={"kind": "push", "strength": 0.05})
+        EvalConfig(model="dp", seeds="0-9", perturb={"kind": "push", "strength": 0.05,
+                                                     "params": {"base_clearance": 0.12}})
 
 
 def test_fingerprint_without_perturb_unchanged():

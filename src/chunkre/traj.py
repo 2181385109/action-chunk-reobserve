@@ -17,6 +17,9 @@
   cube_pos (T, B, 3) float32         只有 aloha：第 t 步（执行动作前）方块的位置 xyz（米），读自 physics.data.qpos[16:19]
   cube_pos_after (T, B, 3) float32   只有 aloha 且开了改仿真状态的扰动（T4 push）：第 t 步 on_state 钩子之后、
                                      env.step 之前的方块位置。推的那一步 cube_pos_after - cube_pos = 实际推的位移，其他步两者相同。
+  block_pose (T, B, 3) float32       只有 PushT（T8b）：第 t 步（执行动作前）T 形块的 pymunk body 位置 x、y（PushT 坐标，0–512）
+                                     和角度（弧度，未取模），读自 env.unwrapped.block
+  block_pose_after (T, B, 3) float32 只有 PushT 且开了改仿真状态的扰动（T8b push）：同 cube_pos_after
 注意：记录的是“执行第 t 步动作之前”的状态，与该步动作配对；回合结束那一步之后的状态不记录
 （gymnasium 0.29 同一步自动 reset，结束后读到的是新回合的状态）。
 
@@ -42,6 +45,29 @@ def cube_positions(env) -> np.ndarray | None:
             return None
         out.append(np.array(u._env.physics.data.qpos[16:19], dtype=np.float64))
     return np.stack(out)
+
+
+def block_poses(env) -> np.ndarray | None:
+    """PushT：各环境 T 形块位姿 (B, 3) = body 位置 x、y 和角度（弧度）；不是 PushT 时返回 None。只读。"""
+    out = []
+    for e in env.envs:
+        u = e.unwrapped
+        if not hasattr(u, "block") or not hasattr(u, "agent"):
+            return None
+        b = u.block
+        out.append(np.array([b.position[0], b.position[1], b.angle], dtype=np.float64))
+    return np.stack(out)
+
+
+def object_state(env) -> tuple[str, np.ndarray] | None:
+    """被操作物体的状态：aloha -> ("cube_pos", (B,3))；PushT -> ("block_pose", (B,3))；都不是 -> None。"""
+    cp = cube_positions(env)
+    if cp is not None:
+        return "cube_pos", cp
+    bp = block_poses(env)
+    if bp is not None:
+        return "block_pose", bp
+    return None
 
 
 def camera_image(obs) -> np.ndarray | None:
@@ -96,9 +122,9 @@ class TrajRecorder:
             row["policy_action"] = np.asarray(policy_action, dtype=np.float32)
         if isinstance(obs, dict) and "agent_pos" in obs:
             row["agent_pos"] = np.asarray(obs["agent_pos"], dtype=np.float32)
-        cp = cube_positions(env)
-        if cp is not None:
-            row["cube_pos"] = cp.astype(np.float32)
+        ob = object_state(env)
+        if ob is not None:
+            row[ob[0]] = ob[1].astype(np.float32)
         if chunk is not None:
             offs = [o for o in CHUNK_OFFSETS if o < chunk.shape[1]]
             row["chunk_sel"] = np.asarray(chunk[:, offs], dtype=np.float32)
@@ -109,9 +135,9 @@ class TrajRecorder:
         """扰动的 on_state 钩子之后调用：给刚记录的这一步补上方块位置（只读）。"""
         if not self.log_traj or not self.rows:
             return
-        cp = cube_positions(env)
-        if cp is not None:
-            self.rows[-1]["cube_pos_after"] = cp.astype(np.float32)
+        ob = object_state(env)
+        if ob is not None:
+            self.rows[-1][ob[0] + "_after"] = ob[1].astype(np.float32)
 
     def _save_png(self, img, seed, t, i):
         from PIL import Image
@@ -150,10 +176,9 @@ class TrajRecorder:
             out["policy_action"] = stack("policy_action", (A,))
         if "agent_pos" in self.rows[0]:
             out["agent_pos"] = stack("agent_pos", (self.rows[0]["agent_pos"].shape[1],))
-        if "cube_pos" in self.rows[0]:
-            out["cube_pos"] = stack("cube_pos", (3,))
-        if "cube_pos_after" in self.rows[0]:
-            out["cube_pos_after"] = stack("cube_pos_after", (3,))
+        for key in ("cube_pos", "cube_pos_after", "block_pose", "block_pose_after"):
+            if key in self.rows[0]:
+                out[key] = stack(key, (3,))
         if hasattr(self, "_offs"):
             out["chunk_offsets"] = np.array(self._offs, dtype=np.int16)
             out["chunk_sel"] = stack("chunk_sel", (len(self._offs), A))

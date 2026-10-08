@@ -1,0 +1,598 @@
+{
+  "source": "results/t8_dp_baseline/run_k8",
+  "n": 50,
+  "n_success": 33,
+  "max_steps": 300,
+  "geometry": {
+    "units": "PushT 坐标（画布 512×512；策略看到的图像 96×96，1 个观测像素 = 512/96 = 5.33 单位）",
+    "tee_rects_local": [
+      [
+        [
+          -60.0,
+          0.0
+        ],
+        [
+          60.0,
+          0.0
+        ],
+        [
+          60.0,
+          30.0
+        ],
+        [
+          -60.0,
+          30.0
+        ]
+      ],
+      [
+        [
+          -15.0,
+          30.0
+        ],
+        [
+          15.0,
+          30.0
+        ],
+        [
+          15.0,
+          120.0
+        ],
+        [
+          -15.0,
+          120.0
+        ]
+      ]
+    ],
+    "tee_bbox_local": [
+      -60.0,
+      60.0,
+      0.0,
+      120.0
+    ],
+    "tee_bar_w_h": [
+      120.0,
+      30.0
+    ],
+    "tee_stem_w_h": [
+      30.0,
+      90.0
+    ],
+    "tee_bar_width": 30.0,
+    "tee_area": 6300.0,
+    "tee_center_of_gravity_local": [
+      0.0,
+      45.0
+    ],
+    "workspace_inner": [
+      7.0,
+      504.0,
+      7.0,
+      504.0
+    ],
+    "agent_radius": 15.0,
+    "goal_pose": [
+      256.0,
+      256.0,
+      0.7853981633974483
+    ],
+    "reset_ranges": {
+      "agent_xy": "[50, 450)",
+      "block_xy": "[100, 400)",
+      "block_angle": "[-π, π)"
+    },
+    "success": "coverage > 0.95（T 形块与目标区域的重叠面积 / 目标面积）；reward = clip(coverage/0.95, 0, 1)",
+    "control": "10 Hz，每步 PD 控制智能体（运动学圆）趋向动作 xy，物理 dt=0.01（每步 10 个子步）"
+  },
+  "first_contact_step_pct": {
+    "0": 0.0,
+    "5": 0.0,
+    "10": 3.6000000000000014,
+    "25": 12.75,
+    "50": 21.5,
+    "75": 28.75,
+    "90": 33.1,
+    "100": 51.0
+  },
+  "n_contact": 50,
+  "first_move_step_pct": {
+    "0": 1.0,
+    "5": 1.0,
+    "10": 4.600000000000001,
+    "25": 15.0,
+    "50": 22.0,
+    "75": 29.0,
+    "90": 34.1,
+    "100": 51.0
+  },
+  "n_move": 50,
+  "success_steps_pct": {
+    "0": 82.0,
+    "5": 106.6,
+    "10": 109.8,
+    "25": 150.0,
+    "50": 168.0,
+    "75": 216.0,
+    "90": 245.0,
+    "100": 272.0
+  },
+  "n_done_by_step": {
+    "10": 0,
+    "20": 0,
+    "30": 0,
+    "40": 0,
+    "50": 0,
+    "60": 0,
+    "70": 0,
+    "80": 0,
+    "100": 1,
+    "120": 4,
+    "150": 9
+  },
+  "n_contact_le": {
+    "5": 7,
+    "10": 10,
+    "15": 15,
+    "20": 24,
+    "30": 40,
+    "40": 48,
+    "60": 50
+  },
+  "definitions": {
+    "first_contact_step": "T 形块与智能体（圆，半径 15）间隙 <= 0.5 的第一步（轨迹第 t 步 = 执行动作前）",
+    "first_move_step": "T 形块 body 位置相对第 0 步移动 > 1.0 或转角 > 0.01 rad 的第一步",
+    "success_steps": "成功回合的 steps（含结束那一步）",
+    "n_done_by_step": "steps <= t 的成功回合数 = 第 t 步推的时候已经结束（不会被推）的回合"
+  },
+  "per_episode": [
+    {
+      "seed": 0,
+      "success": 1,
+      "steps": 154,
+      "first_contact_step": 11,
+      "first_move_step": 11,
+      "gap_at_step0": 77.599,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 1,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 29,
+      "first_move_step": 29,
+      "gap_at_step0": 128.222,
+      "max_reward": 0.5390284996584536
+    },
+    {
+      "seed": 2,
+      "success": 1,
+      "steps": 107,
+      "first_contact_step": 22,
+      "first_move_step": 22,
+      "gap_at_step0": 177.794,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 3,
+      "success": 1,
+      "steps": 168,
+      "first_contact_step": 17,
+      "first_move_step": 18,
+      "gap_at_step0": 167.655,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 4,
+      "success": 1,
+      "steps": 167,
+      "first_contact_step": 8,
+      "first_move_step": 9,
+      "gap_at_step0": 63.997,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 5,
+      "success": 1,
+      "steps": 224,
+      "first_contact_step": 19,
+      "first_move_step": 20,
+      "gap_at_step0": 134.576,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 6,
+      "success": 1,
+      "steps": 185,
+      "first_contact_step": 0,
+      "first_move_step": 1,
+      "gap_at_step0": -7.545,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 7,
+      "success": 1,
+      "steps": 217,
+      "first_contact_step": 25,
+      "first_move_step": 25,
+      "gap_at_step0": 76.987,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 8,
+      "success": 1,
+      "steps": 240,
+      "first_contact_step": 31,
+      "first_move_step": 31,
+      "gap_at_step0": 238.53,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 9,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 23,
+      "first_move_step": 23,
+      "gap_at_step0": 146.967,
+      "max_reward": 0.5157659488071856
+    },
+    {
+      "seed": 10,
+      "success": 1,
+      "steps": 183,
+      "first_contact_step": 24,
+      "first_move_step": 24,
+      "gap_at_step0": 212.089,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 11,
+      "success": 1,
+      "steps": 121,
+      "first_contact_step": 23,
+      "first_move_step": 23,
+      "gap_at_step0": 229.521,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 12,
+      "success": 1,
+      "steps": 216,
+      "first_contact_step": 20,
+      "first_move_step": 20,
+      "gap_at_step0": 221.56,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 13,
+      "success": 1,
+      "steps": 146,
+      "first_contact_step": 0,
+      "first_move_step": 1,
+      "gap_at_step0": -3.819,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 14,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 27,
+      "first_move_step": 28,
+      "gap_at_step0": 135.593,
+      "max_reward": 0.9837435281942742
+    },
+    {
+      "seed": 15,
+      "success": 1,
+      "steps": 161,
+      "first_contact_step": 12,
+      "first_move_step": 12,
+      "gap_at_step0": 74.981,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 16,
+      "success": 1,
+      "steps": 246,
+      "first_contact_step": 0,
+      "first_move_step": 1,
+      "gap_at_step0": -7.64,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 17,
+      "success": 1,
+      "steps": 162,
+      "first_contact_step": 28,
+      "first_move_step": 28,
+      "gap_at_step0": 226.916,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 18,
+      "success": 1,
+      "steps": 133,
+      "first_contact_step": 38,
+      "first_move_step": 38,
+      "gap_at_step0": 210.336,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 19,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 30,
+      "first_move_step": 30,
+      "gap_at_step0": 150.289,
+      "max_reward": 0.9812646507505984
+    },
+    {
+      "seed": 20,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 43,
+      "first_move_step": 44,
+      "gap_at_step0": 167.422,
+      "max_reward": 0.6657086122283329
+    },
+    {
+      "seed": 21,
+      "success": 1,
+      "steps": 186,
+      "first_contact_step": 0,
+      "first_move_step": 1,
+      "gap_at_step0": -6.388,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 22,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 4,
+      "first_move_step": 5,
+      "gap_at_step0": 17.573,
+      "max_reward": 0.6785442242092007
+    },
+    {
+      "seed": 23,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 18,
+      "first_move_step": 18,
+      "gap_at_step0": 73.046,
+      "max_reward": 0.9465758968116605
+    },
+    {
+      "seed": 24,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 19,
+      "first_move_step": 19,
+      "gap_at_step0": 71.806,
+      "max_reward": 0.9783006765115526
+    },
+    {
+      "seed": 25,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 15,
+      "first_move_step": 15,
+      "gap_at_step0": 36.238,
+      "max_reward": 0.9999876994423537
+    },
+    {
+      "seed": 26,
+      "success": 1,
+      "steps": 177,
+      "first_contact_step": 23,
+      "first_move_step": 23,
+      "gap_at_step0": 64.858,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 27,
+      "success": 1,
+      "steps": 272,
+      "first_contact_step": 23,
+      "first_move_step": 23,
+      "gap_at_step0": 83.113,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 28,
+      "success": 1,
+      "steps": 257,
+      "first_contact_step": 15,
+      "first_move_step": 15,
+      "gap_at_step0": 87.299,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 29,
+      "success": 1,
+      "steps": 107,
+      "first_contact_step": 28,
+      "first_move_step": 29,
+      "gap_at_step0": 189.447,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 30,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 51,
+      "first_move_step": 51,
+      "gap_at_step0": 191.432,
+      "max_reward": 0.9988391006313693
+    },
+    {
+      "seed": 31,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 36,
+      "first_move_step": 36,
+      "gap_at_step0": 185.859,
+      "max_reward": 0.9908822513383071
+    },
+    {
+      "seed": 32,
+      "success": 1,
+      "steps": 137,
+      "first_contact_step": 17,
+      "first_move_step": 17,
+      "gap_at_step0": 116.942,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 33,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 21,
+      "first_move_step": 22,
+      "gap_at_step0": 129.719,
+      "max_reward": 0.5634699550301643
+    },
+    {
+      "seed": 34,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 32,
+      "first_move_step": 32,
+      "gap_at_step0": 282.366,
+      "max_reward": 0.9958293538083078
+    },
+    {
+      "seed": 35,
+      "success": 1,
+      "steps": 241,
+      "first_contact_step": 29,
+      "first_move_step": 29,
+      "gap_at_step0": 200.173,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 36,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 8,
+      "first_move_step": 9,
+      "gap_at_step0": 59.557,
+      "max_reward": 0.5737982660898149
+    },
+    {
+      "seed": 37,
+      "success": 1,
+      "steps": 150,
+      "first_contact_step": 20,
+      "first_move_step": 21,
+      "gap_at_step0": 91.303,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 38,
+      "success": 1,
+      "steps": 167,
+      "first_contact_step": 0,
+      "first_move_step": 1,
+      "gap_at_step0": -14.128,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 39,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 32,
+      "first_move_step": 32,
+      "gap_at_step0": 190.404,
+      "max_reward": 0.35659957422157784
+    },
+    {
+      "seed": 40,
+      "success": 1,
+      "steps": 152,
+      "first_contact_step": 18,
+      "first_move_step": 18,
+      "gap_at_step0": 86.289,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 41,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 5,
+      "first_move_step": 16,
+      "gap_at_step0": 2.832,
+      "max_reward": 0.5172995363385625
+    },
+    {
+      "seed": 42,
+      "success": 0,
+      "steps": 300,
+      "first_contact_step": 22,
+      "first_move_step": 23,
+      "gap_at_step0": 171.073,
+      "max_reward": 0.9936718164175534
+    },
+    {
+      "seed": 43,
+      "success": 1,
+      "steps": 208,
+      "first_contact_step": 34,
+      "first_move_step": 35,
+      "gap_at_step0": 86.781,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 44,
+      "success": 1,
+      "steps": 247,
+      "first_contact_step": 8,
+      "first_move_step": 10,
+      "gap_at_step0": 58.249,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 45,
+      "success": 1,
+      "steps": 152,
+      "first_contact_step": 12,
+      "first_move_step": 12,
+      "gap_at_step0": 37.577,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 46,
+      "success": 1,
+      "steps": 192,
+      "first_contact_step": 23,
+      "first_move_step": 23,
+      "gap_at_step0": 201.375,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 47,
+      "success": 1,
+      "steps": 106,
+      "first_contact_step": 19,
+      "first_move_step": 19,
+      "gap_at_step0": 91.827,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 48,
+      "success": 1,
+      "steps": 82,
+      "first_contact_step": 33,
+      "first_move_step": 34,
+      "gap_at_step0": 98.682,
+      "max_reward": 1.0
+    },
+    {
+      "seed": 49,
+      "success": 1,
+      "steps": 178,
+      "first_contact_step": 31,
+      "first_move_step": 31,
+      "gap_at_step0": 234.398,
+      "max_reward": 1.0
+    }
+  ]
+}
