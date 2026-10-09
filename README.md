@@ -1,4 +1,4 @@
-# chunk-reobserve: how long should an action chunk be executed before re-observing?
+# action-chunk-reobserve: how long should an action chunk be executed before re-observing?
 
 A controlled measurement study of the **execution length *k*** of action chunks in imitation-learning policies
 (LeRobot 0.3.3): ACT on the ALOHA sim transfer-cube task, Diffusion Policy on PushT, a self-trained ACT, and a simple
@@ -11,13 +11,13 @@ adaptive re-observation rule. It measures how *k* (and temporal ensembling) trad
   (k=100 beats k=50). Both were pre-registered and are supported.
 - **Self-trained ACT** (our own training run of the official recipe; base level 83.2%) reproduces both ACT findings (H1', H3').
 - **Diffusion Policy.** "Delay → longer execution is better" also holds (H5 supported). "Push → shorter execution is better" holds
-  **only for ACT**: on DP the pre-registered comparison came out the *opposite* way (H4). Most of that gap is not caused by the push: DP's
-  short k (k=4) is already far worse without any perturbation (see the exploratory gap-change table).
+  **only for ACT**: on DP the pre-registered comparison came out the *opposite* way (H4). Most of that gap already exists without any
+  perturbation: DP's short k (k=4) is far worse at baseline (see the exploratory gap-change table).
 - **Adaptive rule.** A simple rule that re-observes when a freshly predicted chunk disagrees with the current plan beats k=100 under
   a push (HA1 supported), but non-inferiority without perturbation was not shown (HA2), and it did **not** beat the fixed k=50
   while using about 5× as many policy calls.
 
-*Status: all four parts are done (see [Status](#status)); the failure-case analysis is done (exploratory). The repository is private for now.*
+*Status: all four parts are done (see [Status](#status)); the failure-case analysis is done (exploratory).*
 
 ## Research question
 
@@ -40,12 +40,36 @@ RSS / ICLR pages; the file also lists what is *not* verified).
 Every part has its own pre-registration file, committed **before any final-evaluation episode of that part was run**
 (final seeds ≥ 200000 are blocked by `src/chunkre/seed_guard.py` until the matching file is committed). The registration files are never edited afterwards.
 
+**Note on the registration files.** They are kept exactly as committed, so they reflect the development setup: the repository name
+they give (`2181385109/chunk-reobserve`) is the private repository used during development, and this public repository was made from it
+by rewriting the history (internal working notes removed, internal labels taken out of commit messages; the remaining files and the commit dates are unchanged).
+Commit hashes quoted in the registrations (and the `git_commit` fields in `results/*/config.json`) therefore refer to the development history.
+Labels such as "T6a" or "T11a" are the internal task numbers of that work log, and the working note cited once in `PREREGISTRATION_OWN.md`
+(for how the training step count was chosen) is not included here; the step rule itself is in `scripts/train_act_tools.py` (`plan_steps`). The hashes quoted in the registrations correspond to these commits in this repository:
+
+<details>
+<summary>Development hash → commit in this repository</summary>
+
+| Quoted in a registration | This repository | Commit |
+|---|---|---|
+| `4b6aadf` | [`27a1523`](https://github.com/2181385109/action-chunk-reobserve/commit/27a1523) | pilot grid (evaluation / perturbation code state for part 1) |
+| `6c5302c` | [`1156d73`](https://github.com/2181385109/action-chunk-reobserve/commit/1156d73) | PREREG (part 1) |
+| `92027a9` | [`7980e1e`](https://github.com/2181385109/action-chunk-reobserve/commit/7980e1e) | PushT push redraw + DP k=4 check (code state for part 2) |
+| `e963f3f` | [`560c58a`](https://github.com/2181385109/action-chunk-reobserve/commit/560c58a) | PREREG-DP (part 2) |
+| `300bf15` | [`24690bc`](https://github.com/2181385109/action-chunk-reobserve/commit/24690bc) | PREREG-DP wording fix |
+| `7880cb9` | [`9980769`](https://github.com/2181385109/action-chunk-reobserve/commit/9980769) | own-ACT training prep |
+| `aac0af2` | [`4ff8e31`](https://github.com/2181385109/action-chunk-reobserve/commit/4ff8e31) | PREREG-OWN (part 3) |
+| `073134a` | [`f623255`](https://github.com/2181385109/action-chunk-reobserve/commit/f623255) | adaptive rule implementation |
+| `303e3df` | [`89b5307`](https://github.com/2181385109/action-chunk-reobserve/commit/89b5307) | adaptive-rule tuning results |
+
+</details>
+
 | Part | Model / task | Grid | Registration (commit) | Results |
 |---|---|---|---|---|
-| 1. ACT | pretrained `lerobot/act_aloha_sim_transfer_cube_human`, ALOHA transfer-cube | k ∈ {20, 50, 100, te} × 10 conditions = 40 cells × 200 episodes | [PREREGISTRATION.md](PREREGISTRATION.md) ([`6c5302c`](https://github.com/2181385109/chunk-reobserve/commit/6c5302c)) | [`results/main/`](results/main) |
-| 2. Diffusion Policy | `lerobot/diffusion_pusht`, PushT | k ∈ {4, 8, 15} × 4 conditions = 12 cells × 200 episodes | [PREREGISTRATION_DP.md](PREREGISTRATION_DP.md) ([`e963f3f`](https://github.com/2181385109/chunk-reobserve/commit/e963f3f), wording fix [`300bf15`](https://github.com/2181385109/chunk-reobserve/commit/300bf15)) | [`results/main_dp/`](results/main_dp) |
-| 3. Self-trained ACT | our own ACT, official recipe, 100,000 steps, one run, seed 1000 | k ∈ {20, 50, 100} × 3 conditions = 9 cells × 200 episodes + a 500-episode base-level test | [PREREGISTRATION_OWN.md](PREREGISTRATION_OWN.md) ([`aac0af2`](https://github.com/2181385109/chunk-reobserve/commit/aac0af2)) | [`results/own_baseline/`](results/own_baseline), [`results/main_own/`](results/main_own) |
-| 4. Adaptive rule | pretrained ACT | 2 cells (no perturbation, push 0.06 m) × 200 episodes | [PREREGISTRATION_ADAPTIVE.md](PREREGISTRATION_ADAPTIVE.md) ([`6e43aa1`](https://github.com/2181385109/chunk-reobserve/commit/6e43aa1)) | [`results/main_adaptive/`](results/main_adaptive) |
+| 1. ACT | pretrained `lerobot/act_aloha_sim_transfer_cube_human`, ALOHA transfer-cube | k ∈ {20, 50, 100, te} × 10 conditions = 40 cells × 200 episodes | [PREREGISTRATION.md](PREREGISTRATION.md) ([`1156d73`](https://github.com/2181385109/action-chunk-reobserve/commit/1156d73)) | [`results/main/`](results/main) |
+| 2. Diffusion Policy | `lerobot/diffusion_pusht`, PushT | k ∈ {4, 8, 15} × 4 conditions = 12 cells × 200 episodes | [PREREGISTRATION_DP.md](PREREGISTRATION_DP.md) ([`560c58a`](https://github.com/2181385109/action-chunk-reobserve/commit/560c58a), wording fix [`24690bc`](https://github.com/2181385109/action-chunk-reobserve/commit/24690bc)) | [`results/main_dp/`](results/main_dp) |
+| 3. Self-trained ACT | our own ACT, official recipe, 100,000 steps, one run, seed 1000 | k ∈ {20, 50, 100} × 3 conditions = 9 cells × 200 episodes + a 500-episode base-level test | [PREREGISTRATION_OWN.md](PREREGISTRATION_OWN.md) ([`4ff8e31`](https://github.com/2181385109/action-chunk-reobserve/commit/4ff8e31)) | [`results/own_baseline/`](results/own_baseline), [`results/main_own/`](results/main_own) |
+| 4. Adaptive rule | pretrained ACT | 2 cells (no perturbation, push 0.06 m) × 200 episodes | [PREREGISTRATION_ADAPTIVE.md](PREREGISTRATION_ADAPTIVE.md) ([`6a1a37b`](https://github.com/2181385109/action-chunk-reobserve/commit/6a1a37b)) | [`results/main_adaptive/`](results/main_adaptive) |
 
 Common to all parts: final seeds **200000–200199**, the same 200 in every cell (a seed fixes the initial scene, so two cells on one seed form a pair);
 success = the environment's `is_success` at the end of the episode; test = exact two-sided McNemar on the seed-paired outcomes;
@@ -137,7 +161,7 @@ Descriptive observations from the 40-cell table (exploratory, no tests, no corre
 
 ### Design and registration
 
-[PREREGISTRATION_DP.md](PREREGISTRATION_DP.md) (commit [`e963f3f`](https://github.com/2181385109/chunk-reobserve/commit/e963f3f); one wording fix before any data, [`300bf15`](https://github.com/2181385109/chunk-reobserve/commit/300bf15), see [Deviations](#deviations-from-pre-registration)).
+[PREREGISTRATION_DP.md](PREREGISTRATION_DP.md) (commit [`560c58a`](https://github.com/2181385109/action-chunk-reobserve/commit/560c58a); one wording fix before any data, [`24690bc`](https://github.com/2181385109/action-chunk-reobserve/commit/24690bc), see [Deviations](#deviations-from-pre-registration)).
 Model `lerobot/diffusion_pusht` (official reported success 65.4%), PushT (`gym_pusht`), 300 steps at 10 Hz, DDPM with the official 100 inference steps,
 execution length *k* = `n_action_steps` ∈ {4, 8, 15} (15 is the maximum the model allows, 8 the official value), batch size 50.
 Conditions (4): none; **push 60** (at a random step in [20, 80] the T block is displaced by 60 PushT units, canvas 0–512, in a random direction, with the direction redrawn
@@ -157,7 +181,7 @@ H4 and H5 are corrected together with Holm (a family of two, separate from H1–
 | H4 | push 60 | k=4 vs k=15 | 0.190 | 0.540 | -0.350 | [-0.430, -0.270] | 13 / 83 | 1.2e-13 | 2.4e-13 | **opposite result** |
 | H5 | delay 4 | k=15 vs k=8 | 0.410 | 0.275 | +0.135 | [+0.055, +0.215] | 50 / 23 | 0.0021 | 0.0021 | supported |
 
-n = 200 paired seeds per hypothesis. **H4 came out the opposite way**: under the push, k=15 is clearly better than k=4. This is not a push effect alone: without perturbation
+n = 200 paired seeds per hypothesis. **H4 came out the opposite way**: under the push, k=15 is clearly better than k=4. Most of this gap is not a push effect: without perturbation
 k=4 is already at 0.275 against 0.515 for k=15 (the gap-change table below separates the two). **H5 is supported**: with delay, the longer k is better, as in ACT.
 Full report with secondary metrics and push accounting: [`main_dp_report.md`](results/main_dp/main_dp_report.md).
 
@@ -183,7 +207,7 @@ Full report with secondary metrics and push accounting: [`main_dp_report.md`](re
 
 ### Design and registration
 
-[PREREGISTRATION_OWN.md](PREREGISTRATION_OWN.md) (commit [`aac0af2`](https://github.com/2181385109/chunk-reobserve/commit/aac0af2)).
+[PREREGISTRATION_OWN.md](PREREGISTRATION_OWN.md) (commit [`4ff8e31`](https://github.com/2181385109/action-chunk-reobserve/commit/4ff8e31)).
 We trained an ACT ourselves with the official recipe (LeRobot 0.3.3, dataset `lerobot/aloha_sim_transfer_cube_human`, batch size 8, lr 1e-5, **100,000 steps, seed 1000, one run**;
 training log in [`results/train_act_own/`](results/train_act_own)). The final checkpoint was fixed as the evaluated one before any evaluation existed; no checkpoint was selected on results.
 A **base-level test** (k=100, no perturbation, seeds 1000–1499, 500 episodes; descriptive) comes first, with a registered *weak-model rule*: if the base level were below 0.40 the README must say that the replication is of limited reference value.
@@ -266,9 +290,10 @@ ACT and the self-trained ACT use k=20 vs k=100; DP uses k=4 vs k=15.
 *Gap change for ACT (pretrained) and DP, with paired bootstrap 95% intervals. A description, not a test; the self-trained ACT is in the table above.*
 
 What the table shows, descriptively: for ACT, pushes move the gap strongly towards the short k (+0.480; +0.330 for the self-trained model) and delay strongly towards the long k (-0.320; -0.480).
-For DP the push does **not** move the gap towards the short k: the gap is -0.240 without perturbation and -0.350 under push 60, a change of -0.110 whose interval includes 0.
-So the opposite result for H4 is mostly DP's short k being worse at baseline, not the push making it worse; on this evidence DP shows no push benefit for short execution, which differs from ACT.
-Under delay 4 the gap change on DP is -0.065 (interval includes 0), in the same direction as for ACT but small.
+For DP the push does **not** move the gap towards the short k. The gap between k=4 and k=15 is already -0.240 without perturbation and -0.350 under push 60, so most of it exists before any push.
+The remaining change of -0.110 points towards the short k being hurt *more* by the push, but its interval [-0.245, +0.020] includes 0, so there is no evidence for that either.
+The conclusion is unchanged: "push → shorter execution is better" does not hold on DP, unlike ACT.
+Under delay 4 the gap change on DP is -0.065 (interval [-0.185, +0.055] includes 0), in the same direction as for ACT but not evidence of an effect.
 
 ---
 
@@ -290,7 +315,7 @@ The selected combination's tuning push result was 20/50 = 40.0%, the highest of 
 
 ### Registration and hypotheses
 
-[PREREGISTRATION_ADAPTIVE.md](PREREGISTRATION_ADAPTIVE.md) (commit [`6e43aa1`](https://github.com/2181385109/chunk-reobserve/commit/6e43aa1)): 2 cells, `ad__none` and `ad__push0.06` × 200 episodes, seeds 200000–200199, compared with the **k=100 cells of part 1** (same seeds, not re-run).
+[PREREGISTRATION_ADAPTIVE.md](PREREGISTRATION_ADAPTIVE.md) (commit [`6a1a37b`](https://github.com/2181385109/action-chunk-reobserve/commit/6a1a37b)): 2 cells, `ad__none` and `ad__push0.06` × 200 episodes, seeds 200000–200199, compared with the **k=100 cells of part 1** (same seeds, not re-run).
 No Holm correction: "the rule is useful on this task" is claimed only if both hypotheses hold.
 
 - **HA1.** Under push 0.06 m, the adaptive rule's success > k=100 (exact McNemar, two-sided, α = 0.05).
@@ -365,7 +390,7 @@ so these timings are not a clean measure of "reaction to the push". In 2 episode
 ## Negative and unexpected results
 
 - **H2 is not supported.** Under σ=16, k=100 is ahead of temporal ensembling by 8.5 points (47 vs 30 discordant seeds), but the paired CI [0.000, 0.170] reaches 0 and the Holm-adjusted p is 0.068 (the same as the raw p, because H2 has the largest raw p of the three). The data do not show a difference between k=100 and te at this noise level, and they do not show that there is none; with 200 pairs the interval is wide.
-- **DP H4 came out the opposite way.** Under push 60, k=4 is *worse* than k=15 (0.190 vs 0.540, Holm p 2.4e-13). The registration anticipated this: k=4 is far below k=15 already without perturbation (0.275 vs 0.515), and the exploratory gap change (-0.110, interval [-0.245, +0.020]) shows the push adds little on top. "Push → shorter is better" is therefore an ACT result in this study, not a general one.
+- **DP H4 came out the opposite way.** Under push 60, k=4 is *worse* than k=15 (0.190 vs 0.540, Holm p 2.4e-13). The registration anticipated this: k=4 is far below k=15 already without perturbation (0.275 vs 0.515). Of the -0.350 gap under the push, -0.240 is already there without perturbation; the remaining exploratory gap change (-0.110, interval [-0.245, +0.020]) points towards the short k being hurt more by the push, but the interval includes 0, so there is no evidence for it. Either way, "push → shorter is better" does not hold on DP; it is an ACT result in this study, not a general one.
 - **The adaptive rule did not beat the fixed k=50.** Under push it is at 0.350 against 0.405 (difference -0.055, interval [-0.125, +0.015]) while using about 5× as many policy calls; without perturbation it is at 0.710 against 0.740. A cheap fixed k=50 is at least as good on this task.
 - **Winner's curse.** The adaptive rule's push result was 20/50 = 40.0% on the tuning seeds, where it was selected as the best of 6 eligible combinations; on the final seeds it is 70/200 = 35.0%. The registration had predicted a lower final value. Even the lower number is a result for a selected setting, not a clean estimate of "an adaptive rule".
 - **Short execution lengths stall the arm.** With k = 1, 2, 5 ACT succeeded in 0/20 episodes (seeds 0–19, [`results/t3_k1_diag/`](results/t3_k1_diag/README.md)); at k=1 the arm stays near its starting pose and does not go for the cube (the predicted chunk starts almost in place, so executing only its first actions never gets going; checked against LeRobot's own evaluator). k=10 had 6/20 in that diagnosis and 0–1/20 in every pilot condition (seeds 5000–5019, `results/pilot/pilot_table.md`), so k ≤ 10 was left out of the main grid.
@@ -385,14 +410,24 @@ so these timings are not a clean measure of "reaction to the push". In 2 episode
 - 200 episodes per cell give Wilson intervals about ±7 points at a rate of 0.5; differences of a few points (and all "best policy" statements) are within noise.
 - Secondary metrics are averages over successes and failures together, so they mix behaviour with outcome.
 - In the PushT push-the-T perturbation (Diffusion Policy) the push direction excludes directions in which the pushed block would overlap the agent: an overlapping direction is redrawn from the episode's own generator (up to 20 times), so the realised direction distribution is slightly tilted away from the agent.
+- **Portability.** The scripts were run only under Windows + WSL2. Paths that are still fixed: the self-trained checkpoint
+  `/root/train_out/act_own/checkpoints/100000/pretrained_model` (named in `PREREGISTRATION_OWN.md` and used by `configs/main_own/*.yaml`,
+  `src/chunkre/main_own.py` and the guard demos; `train_act.sh` writes it there by default, `OUT` changes only the training output);
+  `scripts/check_version_candidates.sh` (a one-off version probe) uses `/root/venvs/`; some checks use scratch directories under `/tmp`.
+  The `run_*.sh` wrappers that evaluate ACT on ALOHA keep the D3D12 renderer check,
+  so on native Linux they stop at the first ACT cell; running those cells there needs `scripts/eval.py --allow-cpu-render` directly, with a different renderer than the one used here.
+  Logs and `config.json` files under `results/` record the absolute paths of the machine they were produced on.
 
 ## Reproduce
 
-Everything runs inside WSL2 (Ubuntu 24.04, Python 3.12, LeRobot 0.3.3, an NVIDIA GPU for rendering); from Windows, with Git Bash:
+**Prerequisites: Windows + WSL2** (Ubuntu 24.04, Python 3.12, LeRobot 0.3.3, an NVIDIA GPU; MuJoCo renders on the GPU through WSL's Mesa D3D12 driver).
+All scripts run inside WSL as root and locate the repository from their own path, so they work from any directory. Below, `<repo>` is the
+path of this repository as seen from WSL (for example `/mnt/c/src/action-chunk-reobserve`). The virtual environment and the Hugging Face cache
+default to `/root/venvs/chunk-reobserve` and `/root/.cache/huggingface` (override with `CHUNK_VENV` / `HF_HOME`). From Windows, with Git Bash:
 
 ```bash
 export MSYS_NO_PATHCONV=1
-W="wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts"
+W="wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts"
 $W/setup_env.sh          # creates the venv, installs pinned versions (requirements.lock.txt)
 $W/run_main.sh           # part 1: ACT, all 40 cells x 200 episodes; resumable; runs the analysis at the end
 $W/run_main_dp.sh        # part 2: DP, 12 cells x 200 episodes; resumable; runs analyze_main_dp.py + analyze_interaction.py
@@ -406,13 +441,21 @@ Each run script takes a cell subset (see its header) and prints its own time est
 40 ACT cells was 13.75 h. Then:
 
 ```bash
-$W/test.sh                                        # unit tests (no simulation)
-python scripts/analyze_main.py                    # part 1 report + hypotheses.json + exploratory figures
-python scripts/make_main_figures.py --copy-to docs/figures   # fig_main.png, fig_cost.png
-python scripts/check_readme_numbers.py            # checks this README's tables against results/ (writes results/readme_check.txt)
+$W/test.sh                                        # unit tests (no simulation) + the README number check
+$W/t10a_py.sh scripts/analyze_main.py             # part 1 report + hypotheses.json + exploratory figures
+$W/t10a_py.sh scripts/make_main_figures.py --copy-to docs/figures   # fig_main.png, fig_cost.png
+$W/t10a_py.sh scripts/check_readme_numbers.py     # checks this README's tables against results/ (writes results/readme_check.txt)
 ```
 
-Details of the environment, rendering and timing: [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md). (The commands above contain this machine's paths; a path clean-up before release is planned.)
+(`scripts/t10a_py.sh` runs a Python script inside the project environment; inside a WSL shell you can equally `source scripts/env.sh` and call `python` directly.)
+
+**Native Linux (not tested).** On Ubuntu 24.04 with an NVIDIA driver, run the same scripts from the repository root without `wsl.exe`
+(`bash scripts/setup_env.sh`, then e.g. `bash scripts/run_main.sh`); `setup_env.sh` installs system packages with `apt-get`, so it needs root
+(or install the packages listed in it yourself and set `CHUNK_VENV` / `HF_HOME` to writable paths). The ALOHA (ACT) evaluation refuses to run unless the
+renderer is Mesa D3D12, which exists only under WSL; on native Linux pass `--allow-cpu-render` to `scripts/eval.py` (it accepts any non-D3D12 renderer).
+The `run_*.sh` wrappers do not pass this flag (see [Limitations](#limitations)). PushT (Diffusion Policy) does not use OpenGL and is not affected.
+
+Details of the environment, rendering and timing: [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md).
 
 ## Deviations from pre-registration
 
@@ -424,7 +467,7 @@ The registration files were never edited after their commit, except for the one 
   (`yerr_from_ci` in `src/chunkre/plotting.py`, with a unit test in `tests/test_plotting.py`). No statistic was changed:
   `hypotheses.json` (written before the crash) and the rerun are byte-identical (SHA-256 `ea6bfbb8…4eb0`), and so are `main_cells.csv`.
   The fix was made after the final data were collected but does not touch any computation.
-- **(b) DP: one wording correction in the registration, before any data.** Commit [`300bf15`](https://github.com/2181385109/chunk-reobserve/commit/300bf15) (after `e963f3f`, before any DP final-evaluation episode) removed delay 2 from the DP gap-change list and reworded the note on reward reproducibility (2 lines). No hypothesis, test, grid or seed was changed.
+- **(b) DP: one wording correction in the registration, before any data.** Commit [`24690bc`](https://github.com/2181385109/action-chunk-reobserve/commit/24690bc) (after `560c58a`, before any DP final-evaluation episode) removed delay 2 from the DP gap-change list and reworded the note on reward reproducibility (2 lines). No hypothesis, test, grid or seed was changed.
 - **(c) Adaptive: "first re-plan after the push" is implemented as t > push_step.** The registration says "at or after the push". The push is applied at the end of step `push_step`, after the policy has chosen that step's action, so the policy first sees the pushed scene at `push_step + 1`; a re-plan at exactly `push_step` used the pre-push picture and is not a reaction.
   The 2 episodes in which the first difference-triggered re-plan fell exactly on `push_step` are reported separately. This affects only the descriptive reaction-time distribution, not HA1 or HA2.
 - **(d) Adaptive: HA1, HA2 and the 5-point margin were fixed after the tuning run had been seen**, but before any final seed was used (the registration says so in its §7). Tuning used seeds 6000–6049 only; the final seeds 200000–200199 were not used for tuning in any form.
@@ -441,4 +484,6 @@ There are no other deviations.
 | 4. Adaptive re-observation rule | done |
 | Failure-case analysis | done (exploratory) |
 
-Rules and workflow for contributors: [CLAUDE.md](CLAUDE.md); handoff notes: [HANDOFF.md](HANDOFF.md); Chinese notes: [docs/notes_zh/](docs/notes_zh/).
+How this project was done. I used Claude (an AI assistant) to write the code, to draft the documentation, and as a discussion partner for the experimental design. I decided the scope, approved each design choice and pre-registration before data were collected, and ran all experiments on my own machine. Every number reported here is recomputed from the raw per-episode files by scripts in this repository.
+
+License: [MIT](LICENSE).
