@@ -1,0 +1,46 @@
+{
+  "name": "ad_m20_q95__push0.06",
+  "model": "act",
+  "mode": "adaptive",
+  "k": 100,
+  "batch_size": 10,
+  "seeds": "6000..6049 (n=50)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 50,
+    "n_success": 12,
+    "success_rate": 0.24,
+    "success_ci95_wilson": [
+      0.1429739139699173,
+      0.3741268375794292
+    ],
+    "mean_policy_calls": 18.92,
+    "mean_smoothness": 0.026118033695338508,
+    "mean_steps": 376.5,
+    "mean_steps_success": 302.0833333333333,
+    "mean_sum_reward": 127.64,
+    "mean_max_reward": 1.98,
+    "n_capped": 0,
+    "n_batches": 5,
+    "total_batch_wall_s": 290.5122591069812,
+    "wall_s_per_episode": 5.810245182139624,
+    "mean_path_length": 9.80832349471787,
+    "mean_jerk": 0.02632126320706904,
+    "mean_reversal_rate": 0.39640660962150526,
+    "perturb_kind": "push",
+    "perturb_strength": 0.06,
+    "push_status_counts": {
+      "pushed": 50,
+      "zero": 0,
+      "skipped_lifted": 0,
+      "skipped_overlap": 0,
+      "not_reached": 0
+    },
+    "n_push_clipped": 0,
+    "mean_push_d_actual": 0.06,
+    "mean_n_checks": 16.12,
+    "mean_n_replans_diff": 3.6,
+    "mean_n_replans_exhaust": 1.8
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}
