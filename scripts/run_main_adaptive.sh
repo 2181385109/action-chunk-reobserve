@@ -1,10 +1,10 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T11b 自适应规则正式评估（交给用户在终端跑）：2 格 ad__none、ad__push0.06（自适应规则 m=10、tau=0.2906、h_cmp=20、min_gap=20；
+# T11b 自适应规则正式评估（耗时长，在终端手动运行）：2 格 ad__none、ad__push0.06（自适应规则 m=10、tau=0.2906、h_cmp=20、min_gap=20；
 #   种子 200000–200199，每格 200 回合，同一批种子，B=10，GPU 渲染），输出 results/main_adaptive/<格子名>/。设计见 PREREGISTRATION_ADAPTIVE.md。
 #   对照 = results/main/k100__none、k100__push0.06（同一批种子，不重跑）。
 # 用法（从 Windows，Git Bash 先 export MSYS_NO_PATHCONV=1）：
-#   wsl.exe -d Ubuntu-24.04 -u root --cd /mnt/d/xiangmu/chunk-reobserve -- bash scripts/run_main_adaptive.sh [选择]
+#   wsl.exe -d Ubuntu-24.04 -u root --cd <repo> -- bash scripts/run_main_adaptive.sh [选择]
 # 选择（可不写 = all）：all | 1 | 2 | ad__none,ad__push0.06（按格子名，逗号分隔）
 # 可续跑：中断后重新运行同一命令即可。已完成的（summary.json 在且回合都在 episodes.csv）跳过；做到一半的从未完成的批次接着跑。
 # 开跑前的两道检查（任何一道不过，一个回合都不跑、不加载模型）：
@@ -14,7 +14,7 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 # 可选环境变量（只用于检查 / 演示，正式运行不要设）：MAIN_ADAPTIVE_OUT（默认 results/main_adaptive）、
 #   MAIN_ADAPTIVE_CONFIG_DIR（默认 configs/main_adaptive）、ADAPT_M / ADAPT_TAU / ADAPT_H_CMP / ADAPT_MIN_GAP（覆盖参数：演示“参数不一致被拦”）。
 set -eo pipefail
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 OUT="${MAIN_ADAPTIVE_OUT:-results/main_adaptive}"
 CFG="${MAIN_ADAPTIVE_CONFIG_DIR:-configs/main_adaptive}"
 SELECT="${1:-all}"

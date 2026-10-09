@@ -1,7 +1,7 @@
 # 环境说明（T1，2026-10-06）
 
 > 一句话：WSL2 Ubuntu-24.04 + Python 3.12 + **LeRobot 0.3.3** + PyTorch 2.7.1(cu126)，RTX 4060 Laptop 8GB；MuJoCo 渲染走 **EGL + Mesa D3D12（GPU）**；HF 直连、pip 走清华镜像。
-> 所有 Python 在 WSL 里跑，入口 `source scripts/env.sh`（见 CLAUDE.md §3）。
+> 所有 Python 在 WSL 里跑，入口 `source scripts/env.sh`（见 README 的 Reproduce 小节）。
 
 ## 1. 固定版本
 
@@ -19,7 +19,7 @@
 | diffusers | 0.41.0 | Diffusion Policy 需要 |
 | 完整清单 | `requirements.lock.txt`（137 个包） | `setup_env.sh` 用它做约束，可重复运行（已验证：二次运行 `Checked 1 package`，无变化） |
 
-安装：`wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/setup_env.sh`
+安装：`wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/setup_env.sh`
 验证：`... scripts/verify_env.sh`，实测输出：
 `lerobot 0.3.3 | torch 2.7.1+cu126 | cuda_available True | gpu NVIDIA GeForce RTX 4060 Laptop GPU`
 
@@ -72,7 +72,7 @@ aloha 是 MuJoCo 环境，需要离屏渲染。实测（`scripts/bench_render.sh
 **最终选择：EGL + Mesa D3D12（GPU 渲染）**，已写进 `scripts/env.sh`（`CHUNK_RENDER=gpu` 为默认；`export CHUNK_RENDER=cpu` 退回 llvmpipe）。aloha 每回合环境耗时从 ~17.5 s 降到 ~4 s（约 4–5 倍）。PushT 用 pygame 渲染，不受影响。
 
 ⚠️ **渲染器是一个混杂因素，全研究必须固定同一种**：
-- ~~同一个种子、同一个渲染器，结果逐步可复现~~ **T2 更正**：T1 只比了 ACT seed 0 的结局（GPU 3 次都是 400 步失败）。T2 逐像素检查发现：**D3D12（GPU）渲染不是逐字节确定的**（同一状态重复渲染，每帧有几十个像素值差 1/255），ACT 同配置两次逐回合结果不同；**CPU llvmpipe 逐字节确定**。证据与选项见 HANDOFF.md“ACT 在 GPU 渲染下不可逐回合复现”、`results/t2_checks/probe_*.json*`。
+- ~~同一个种子、同一个渲染器，结果逐步可复现~~ **T2 更正**：T1 只比了 ACT seed 0 的结局（GPU 3 次都是 400 步失败）。T2 逐像素检查发现：**D3D12（GPU）渲染不是逐字节确定的**（同一状态重复渲染，每帧有几十个像素值差 1/255），ACT 同配置两次逐回合结果不同；**CPU llvmpipe 逐字节确定**。证据见 `results/t2_checks/probe_*.json*`。
 - 但两种渲染器的第一帧只有极小的像素差（平均绝对差 0.025/255，仅 0.007% 像素差 >8），ACT 的 seed 0 却从“成功”变成“失败”：开环执行 100 步的 ACT 会放大微小的图像差异。**单个种子的成败对渲染器很敏感**；这也说明：官方 83% 是在另一种硬件/渲染器上测得的，我们复现时数字有偏差是正常的（后续任务再测）。
 - 退出时 stderr 会出现 `OpenGL.raw.EGL._errors.EGLError` / `render_executor ... atexit` 的追溯，是 dm_control 在解释器退出时释放 EGL 上下文的无害噪声，不影响结果，退出码为 0。
 
@@ -99,13 +99,13 @@ aloha 是 MuJoCo 环境，需要离屏渲染。实测（`scripts/bench_render.sh
 
 要点：
 1. 官方数字 **用的就是各模型 config 里的默认 k**（ACT=100、DP=8），不是另外调过的值。
-2. 官方评估的**种子 1000–1499 落在本项目的调试/调参区间（0–9999）内**，所以“官方数字”不能当作我们最终评估的参照种子；最终评估用 ≥200000（T2 起；10000–199999 保留不用，因为官方 DP 训练种子是 100000。见 CLAUDE.md §5）。
+2. 官方评估的**种子 1000–1499 落在本项目的调试/调参区间（0–9999）内**，所以“官方数字”不能当作我们最终评估的参照种子；最终评估用 ≥200000（T2 起；10000–199999 保留不用，因为官方 DP 训练种子是 100000。见 `src/chunkre/seed_guard.py`）。
 3. 原 ACT 论文推荐的时间集成（系数 0.01）在这个 hub 模型的默认设置里是**关闭**的；若后续要比较“k=1 + 时间集成”，需要显式打开 `temporal_ensemble_coeff`（此时 LeRobot 要求 `n_action_steps=1`）。
 4. 模型卡指出：重构后的代码可能有 bug/与原仓库评估启发式不同，所以 83% 与原论文数字不可直接比较。
 
 <!-- repro:begin -->
 
-### 复现结果（T2 脚本 `scripts/run_repro.sh`，用户 2026-10-07 跑完；由 `scripts/repro_table.py` 从 `results/repro/compare_official.json` 生成，勿手改）
+### 复现结果（T2 脚本 `scripts/run_repro.sh`，2026-10-07 手动运行完成；由 `scripts/repro_table.py` 从 `results/repro/compare_official.json` 生成，勿手改）
 
 设置：官方种子 1000–1499 各 500 回合，官方默认推理设置（ACT k=100 无时间集成、DP k=8），GPU 渲染（D3D12）；逐回合结果 `results/repro/{act,dp}/episodes.csv`。
 
@@ -138,7 +138,7 @@ aloha 是 MuJoCo 环境，需要离屏渲染。实测（`scripts/bench_render.sh
 
 耗时规划要点：
 - **ACT**：每回合 ≈4–6 s（环境渲染占 ~80%）；默认 k=100 时整回合策略推理只有 0.2–0.8 s（含 3–4 次块预测，首回合含预热）；k 变小会让预测次数增加（k=1 时每步一次），推理占比会上升，具体多少**未实测**，留给后续任务。
-- **DP**：策略推理占 ~99%。一次动作块预测（100 步 DDPM 去噪，262.7M 参数）实测 **约 1.56 s**（`scripts/bench_render.py dp_infer`，稳态 1.56–1.57 s）。默认 k=8 时 300 步回合约 38 次预测 ≈ 47–60 s。**若 k=1，则每步一次预测，回合约 300×1.56 s ≈ 8 分钟**；k=2 ≈ 4 分钟/回合。DP 的 k 扫描会非常贵——后续任务排计划时必须考虑（例如减少 DP 的 k 取值、降低回合数，或评估是否允许减少去噪步数——但那就偏离了“官方默认推理设置”，需统筹决定）。
+- **DP**：策略推理占 ~99%。一次动作块预测（100 步 DDPM 去噪，262.7M 参数）实测 **约 1.56 s**（`scripts/bench_render.py dp_infer`，稳态 1.56–1.57 s）。默认 k=8 时 300 步回合约 38 次预测 ≈ 47–60 s。**若 k=1，则每步一次预测，回合约 300×1.56 s ≈ 8 分钟**；k=2 ≈ 4 分钟/回合。DP 的 k 扫描会非常贵——后续任务排计划时必须考虑（例如减少 DP 的 k 取值、降低回合数，或评估是否允许减少去噪步数——但那就偏离了“官方默认推理设置”，需要另行决定）。
 - 模型加载：ACT ≈15 s、DP ≈33 s（含首次下载与 CUDA 初始化；ACT 首次还会下载 ResNet18 权重）。
 - 首帧图像检查（`results/smoke/first_obs_*.png`）：ACT 480×640×3，均值 39.9、标准差 50.8、197 个不同取值——黑背景上有灰色桌面、两只机械臂和红色方块，画面正常；DP 96×96×3，均值 249.3、标准差 21.7、89 个不同取值——白底上有灰色 T 块、绿色目标和蓝色智能体点，画面正常。标准差都明显大于 0，不是全黑/单色。
 

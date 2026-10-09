@@ -1,7 +1,7 @@
 """T10a 自训练 ACT 的纯函数工具（不 import torch / lerobot，单元测试直接测）+ 小命令行。
 
 - train_args()        lerobot 0.3.3 训练脚本的命令行参数（官方超参数；冒烟 / 测速 / 正式训练共用）
-- plan_steps()        训练步数规则（统筹定）：官方步数估计 <= 10 小时用官方步数，否则 10 小时能跑完的最大步数，向下取整到 5000 的倍数
+- plan_steps()        训练步数规则（事先定）：官方步数估计 <= 10 小时用官方步数，否则 10 小时能跑完的最大步数，向下取整到 5000 的倍数
 - parse_train_log()   从训练日志（可能含多次续训）解析 loss 曲线
 - diff_train_config() 与官方 train_config.json 比较
 
@@ -25,7 +25,7 @@ OFFICIAL_CFG_PATH = ROOT / "docs" / "official_model_cards" / "act_aloha_sim_tran
 OFFICIAL_CFG = json.loads(OFFICIAL_CFG_PATH.read_text(encoding="utf-8"))
 REPO_ID = OFFICIAL_CFG["dataset"]["repo_id"]          # lerobot/aloha_sim_transfer_cube_human
 OFFICIAL_STEPS = int(OFFICIAL_CFG["steps"])            # 100000
-TRAIN_SEED = 1000                                      # 统筹定；与官方 train_config 的 seed 相同
+TRAIN_SEED = 1000                                      # 与官方 train_config 的 seed 相同
 SAVE_FREQ = 5000
 LOG_FREQ = 200                                         # 与官方相同
 BUDGET_H = 10.0
@@ -68,7 +68,7 @@ def train_args(steps: int, num_workers: int, output_dir: str, save_freq: int = S
 
 def plan_steps(steps_per_s: float, official_steps: int = OFFICIAL_STEPS, budget_h: float = BUDGET_H,
                round_to: int = ROUND_TO, startup_s: float = 0.0) -> dict:
-    """统筹定的机械规则。估计耗时 = startup_s + 步数 / 稳态速度。"""
+    """事先定好的机械规则。估计耗时 = startup_s + 步数 / 稳态速度。"""
     if steps_per_s <= 0:
         raise ValueError("steps_per_s 必须 > 0")
     est_official_h = (startup_s + official_steps / steps_per_s) / 3600

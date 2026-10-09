@@ -1,4 +1,4 @@
-"""T11a 自适应规则阈值选择（统筹定的规则，机械执行；规则本身在 src/chunkre/tune_adaptive.py::select）。
+"""T11a 自适应规则阈值选择（事先定好的规则，机械执行；规则本身在 src/chunkre/tune_adaptive.py::select）。
 
   python scripts/select_adaptive.py [--dir results/tune_adaptive] [--n 50]
 

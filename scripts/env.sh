@@ -2,14 +2,14 @@
 # 统一入口：source scripts/env.sh   （在 WSL 内使用）
 # 设置：虚拟环境、HF 缓存/端点、pip 镜像、MuJoCo 离屏渲染后端、项目路径。
 
-export CHUNK_ROOT="/mnt/d/xiangmu/chunk-reobserve"
-export CHUNK_VENV="/root/venvs/chunk-reobserve"
+export CHUNK_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"   # repo root = parent of scripts/
+export CHUNK_VENV="${CHUNK_VENV:-/root/venvs/chunk-reobserve}"
 
 # --- 网络（机器在中国大陆；2026-10-06 实测）---
 # huggingface.co 直连 ~1s、下载 ~6MB/s，与 hf-mirror.com 相当，所以默认直连。
 # 如果直连变慢/不通，运行前设置：export HF_ENDPOINT=https://hf-mirror.com
 export HF_ENDPOINT="${HF_ENDPOINT:-https://huggingface.co}"
-export HF_HOME="/root/.cache/huggingface"
+export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
 # pypi.org 实测 15s 超时 → 使用清华镜像（uv 与 pip 都读这两个变量）
 export PIP_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 export UV_INDEX_URL="$PIP_INDEX_URL"

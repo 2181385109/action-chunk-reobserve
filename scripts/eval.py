@@ -10,7 +10,7 @@
   python scripts/eval.py --config configs/act_default.yaml --out results/x --policy-path /root/train_out/act_own/checkpoints/last/pretrained_model  # T10a 自训练
   python scripts/eval.py --config configs/act_default.yaml --out results/x --mode adaptive --adapt-m 10 --adapt-tau 0.05  # T11a 自适应（只 ACT）
 
-命令行参数覆盖 YAML 里的同名字段。输出（CLAUDE.md §6）：
+命令行参数覆盖 YAML 里的同名字段。输出：
   <out>/config.json   配置 + 策略实际参数 + 实际 GL_RENDERER + 版本
   <out>/episodes.csv  一回合一行
   <out>/summary.json  成功率 + Wilson 95% 区间、平均调用次数、平均平滑度（可由 scripts/summarize.py 重算）

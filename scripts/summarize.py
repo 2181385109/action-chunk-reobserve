@@ -1,4 +1,4 @@
-"""由 episodes.csv 重新计算汇总，并与 summary.json 比对（CLAUDE.md §6：汇总必须能从逐回合 CSV 重算）。
+"""由 episodes.csv 重新计算汇总，并与 summary.json 比对（汇总必须能从逐回合 CSV 重算）。
 
 用法：
   python scripts/summarize.py results/<实验名>            # 打印重算结果，并与 summary.json 比对

@@ -36,7 +36,7 @@ from chunkre.perturb import (PERTURB_COLUMNS, PushTee, episode_rng, polys_at, ra
 BASE = ROOT / "results" / "t8_dp_baseline"
 OUT = ROOT / "results" / "t8_checks"
 V1 = OUT / "v1_skip"                 # T8b 旧版（重叠直接跳过）的检查结果，T8c 起留档对照
-D_LEVELS = (20.0, 40.0, 60.0)      # 建议档位（PushT 坐标），依据见 baseline.md / HANDOFF.md
+D_LEVELS = (20.0, 40.0, 60.0)      # 建议档位（PushT 坐标），依据见 results/t8_dp_baseline/baseline.md
 D_MAX = D_LEVELS[-1]
 D2_FRAME_SEEDS = (0, 1, 2, 3)      # 存画面的种子；PNG 从中取前 2 个真正推了的回合
 CONTACT_TOL = 0.5                  # 间隙 <= 0.5 视为“碰到”（pymunk 接触有亚像素穿透）

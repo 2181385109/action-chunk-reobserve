@@ -2,7 +2,7 @@
 在一个临时 git 仓库里做（里面只提交了 ACT / DP / OWN 的登记，没有 ADAPTIVE 登记），不跑任何回合，也不动本仓库。
 分两层演示：① check_seeds(guard_model(...))；② 真正的 runner.run_eval（把它用的守卫指到临时仓库，被拦时不建输出目录）。
 
-  wsl.exe -d Ubuntu-24.04 -u root --cd /mnt/d/xiangmu/chunk-reobserve -- bash scripts/seed_guard_demo_adaptive.sh
+  wsl.exe -d Ubuntu-24.04 -u root --cd <repo> -- bash scripts/seed_guard_demo_adaptive.sh
 """
 import functools
 import subprocess

@@ -4,7 +4,7 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 # 旧代码 = OLD_COMMIT（加指尖记录之前的提交）用 git archive 解到 /tmp/t13_old；新代码 = 当前仓库。
 # 条件：k20 无扰动 / k20 推 0.06 / k20 延迟 10（覆盖改状态、改动作两个钩子）。结果 results/failure_checks/record_check.md
 set -eo pipefail
-OLD_COMMIT="${OLD_COMMIT:-e970cfd}"
+OLD_COMMIT="${OLD_COMMIT:-9069add}"
 export CHUNK_RENDER=cpu
 source scripts/env.sh
 W=/tmp/t13_check

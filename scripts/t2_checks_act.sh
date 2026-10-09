@@ -4,14 +4,14 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 #  1) GPU 渲染（研究默认）：V4（k=1、10、te；k=100 用 act_v1_run1）——调用次数检查不依赖逐位可复现；
 #  2) CPU 渲染 llvmpipe（逐字节可复现）：V1 两次、V2、V3 四个进程并行，用来检验评估脚本本身。
 # 用法：bash scripts/t2_checks_act.sh   （约 8 分钟）
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 OUT=results/t2_checks
 rm -rf $OUT/act_v4_* $OUT/act_cpu_*
 python scripts/t2_checks.py run act --only v4 > $OUT/act_v4_chain.log 2>&1 &
 PG=$!
 
 export CHUNK_RENDER=cpu
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 export LP_NUM_THREADS=4   # 4 个进程并行，每个 llvmpipe 用 4 线程（16 核）
 python scripts/eval.py --config configs/act_default.yaml --out $OUT/act_cpu_v1_run1 --seeds 0-9 --batch-size 10 \
   --allow-cpu-render > $OUT/act_cpu_v1a.log 2>&1 &

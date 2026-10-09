@@ -1,7 +1,7 @@
 """T9 seed_guard 拦截演示：>=200000 的种子 + model="dp"，在 PREREGISTRATION_DP.md 没有提交的仓库里被拦住。
 在一个临时 git 仓库里做（里面只提交了 ACT 的 PREREGISTRATION.md，没有 DP 登记），不跑任何回合，也不动本仓库。
 
-  wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/seed_guard_demo_dp.sh
+  wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/seed_guard_demo_dp.sh
 """
 import subprocess
 import sys

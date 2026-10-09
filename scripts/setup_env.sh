@@ -5,8 +5,8 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 #       LEROBOT_VERSION=0.4.4 bash scripts/setup_env.sh   # 试别的版本（会装到同一个 venv）
 set -euo pipefail
 
-CHUNK_ROOT="/mnt/d/xiangmu/chunk-reobserve"
-CHUNK_VENV="/root/venvs/chunk-reobserve"
+CHUNK_ROOT="$(pwd)"   # repo root (the cd above)
+CHUNK_VENV="${CHUNK_VENV:-/root/venvs/chunk-reobserve}"
 LEROBOT_VERSION="${LEROBOT_VERSION:-0.3.3}"
 # extras 名称随版本不同，若 setup 失败见 docs/ENVIRONMENT.md
 LEROBOT_EXTRAS="${LEROBOT_EXTRAS:-aloha,pusht}"
@@ -24,7 +24,7 @@ if [ -n "$need" ]; then
   apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $need
 fi
 
-mkdir -p /root/venvs
+mkdir -p "$(dirname "$CHUNK_VENV")"
 if [ ! -x "$CHUNK_VENV/bin/python" ]; then
   echo "[setup] 创建 venv（系统 Python 3.12）"
   python3 -m venv "$CHUNK_VENV"

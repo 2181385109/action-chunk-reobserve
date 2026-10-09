@@ -51,7 +51,7 @@ def test_final_seeds_need_committed_prereg(tmp_path):
 
 
 def test_repo_prereg_is_committed_so_final_seeds_pass():
-    """T6b 起：PREREGISTRATION.md 已提交（commit 6c5302c），本仓库里 >=200000 的种子通过检查（只是检查，不跑回合）。
+    """T6b 起：PREREGISTRATION.md 已提交（commit 1156d73），本仓库里 >=200000 的种子通过检查（只是检查，不跑回合）。
     没有已提交登记的目录里仍然报错：见上面的 tmp_path 测试。"""
     from chunkre.seed_guard import preregistration_committed
     if not preregistration_committed():

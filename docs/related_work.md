@@ -9,7 +9,7 @@
 | 3 | Bidirectional Decoding (BID) | arXiv v1 标题：Bidirectional Decoding: Improving Action Chunking via Guided Test-Time Sampling；ICLR 页面标题：…via Closed-Loop Resampling（标题在版本间改过） | Yuejiang Liu, Jubayer Ibn Hamid, Annie Xie, Yoonho Lee, Maximilian Du, Chelsea Finn（ICLR 页面署名写作 Jubayer Hamid, Max Du，为简写） | 2024（首次提交 2024-08-30；最新 v4 为 2025-04-25） | ICLR 2025 —— 但 iclr.cc 页面（iclr.cc/virtual/2025/32377）把它列为 **Workshop “Generative Models for Robot Learning” 的 Poster**；是否同时是主会论文：**未核实**。arXiv 页面未标 venue | 2408.17355 | **部分核实**（作者、年份、arXiv 号已核实；“主会还是 workshop”未核实，引用时写 “ICLR 2025 (workshop poster listed on iclr.cc)” 或只写 arXiv） |
 | 4 | Real-Time Chunking (RTC) | Real-Time Execution of Action Chunking Flow Policies | Kevin Black, Manuel Y. Galliker, Sergey Levine | 2025（首次提交 2025-06-09） | NeurIPS 2025（来自 arXiv 摘要页的 venue 字段；NeurIPS 官方页未单独打开） | 2506.07339 | **已核实**（arXiv 页面）；NeurIPS 官方页：**未核实** |
 
-> 注：提示词里写“Real-Time Chunking（Black 等，2025）”，论文正式标题是 “Real-Time Execution of Action Chunking Flow Policies”，“Real-Time Chunking (RTC)” 是其方法名。
+> 注：研究计划里写的是“Real-Time Chunking（Black 等，2025）”，论文正式标题是 “Real-Time Execution of Action Chunking Flow Policies”，“Real-Time Chunking (RTC)” 是其方法名。
 
 ## 与“执行多少步再重新观察”的关系
 

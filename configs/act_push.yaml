@@ -1,4 +1,4 @@
-# T4：ACT（k=100，无时间集成）+ 回合中途推方块。强度 d（米）用 --perturb-strength 覆盖；档位第 4 天定（建议见 HANDOFF.md）
+# T4：ACT（k=100，无时间集成）+ 回合中途推方块。强度 d（米）用 --perturb-strength 覆盖；档位由试跑决定（见 PREREGISTRATION.md）
 model: act
 seeds: 0-9
 batch_size: 10

@@ -226,7 +226,7 @@ class PushCube(Perturbation):
     kind = "push"
     touches_state = True
     DEFAULTS = dict(
-        t_lo=20,              # 窗口（含两端）。依据见 HANDOFF.md：T3 k=100 首次夹爪闭合最早 120 步、10% 分位 123.9 步
+        t_lo=20,              # 窗口（含两端）。依据：T3 k=100 首次夹爪闭合最早 120 步、10% 分位 123.9 步
         t_hi=100,
         lift_thresh=0.01,     # 方块中心高于静止高度（= 桌面 + 半边长）超过 1 cm 视为已被抬起
         edge_margin=0.05,     # 方块中心离桌边至少 5 cm（含半边长 2 cm）
@@ -443,7 +443,7 @@ class PushTee(Perturbation):
     kind = "push"
     touches_state = True
     DEFAULTS = dict(
-        t_lo=20,              # 窗口（含两端）。依据见 HANDOFF.md 和 results/t8_dp_baseline/baseline.md：k=8 种子 0–49 首次碰到 T 中位 21.5 步，
+        t_lo=20,              # 窗口（含两端）。依据见 results/t8_dp_baseline/baseline.md：k=8 种子 0–49 首次碰到 T 中位 21.5 步，
         t_hi=80,              # 最早成功结束在第 82 步（10% 分位 110）-> 推的时候基线所有回合都还没完成
         edge_margin=0.0,      # T 形块顶点离墙内缘至少这么多（PushT 坐标）
         overlap_margin=0.0,   # 新位置与智能体的间隙 < 这个值视为重叠（0 = 几何上真正相交才算）

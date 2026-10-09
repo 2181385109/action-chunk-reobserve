@@ -8,7 +8,7 @@
 
 和 LeRobot 不同的地方：
 - 每批开始先用该批第一个种子设定 random/numpy/torch 的全局种子（LeRobot 只在评估开始时设一次）；
-- 逐回合统计只算到该回合结束那一步（LeRobot 的掩码多算了结束后的一步，见 docs/notes_zh/02）；
+- 逐回合统计只算到该回合结束那一步（LeRobot 的掩码多算了结束后的一步）；
 - 额外统计策略调用次数、动作平滑度、墙钟时间；可设 max_steps 截断（只用于检查）。
 """
 from __future__ import annotations

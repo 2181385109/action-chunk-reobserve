@@ -59,7 +59,7 @@ def path_length(actions) -> float:
 def jerk(actions) -> float:
     """jerk = 动作二阶差分的 L2 范数的平均值：mean_t ||a_t - 2 a_{t-1} + a_{t-2}||_2。
 
-    动作是关节目标位置，所以二阶差分其实是“目标加速度”；这里按 T3 提示词的定义叫 jerk。
+    动作是关节目标位置，所以二阶差分其实是“目标加速度”；这里沿用 jerk 这个名字。
     匀速运动为 0，忽快忽慢或来回抖动时变大。T < 3 时返回 nan。
     """
     a = _as_2d(actions)

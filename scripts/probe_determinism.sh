@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # T2 排查 ACT 不确定性：渲染画面 / 策略推理 是否跨进程逐字节可复现。结果写 results/t2_checks/probe_determinism.jsonl
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 OUT=results/t2_checks/probe_determinism.jsonl
 : > $OUT
 P="python scripts/probe_determinism.py"
@@ -24,7 +24,7 @@ kill $LP 2>/dev/null; wait $LP 2>/dev/null
 # CPU 软渲染对照
 if [ "${WITH_CPU:-1}" = "1" ]; then
   export CHUNK_RENDER=cpu
-  source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+  source scripts/env.sh
   run $P render --B 10 --steps $STEPS --tag cpu_B10_a
   run $P render --B 10 --steps $STEPS --tag cpu_B10_b
 fi

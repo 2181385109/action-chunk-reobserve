@@ -29,7 +29,7 @@ from chunkre.metrics import TIME_COLUMNS, read_episodes, summarize_csv  # noqa: 
 from chunkre.perturb import PERTURB_COLUMNS, ObsNoise, camera_arrays  # noqa: E402
 
 OUT = ROOT / "results" / "t5_checks"
-# 建议档位（依据见 HANDOFF.md；最大档用于 N2 / N4）
+# 建议档位（依据见 results/t5_checks/checks.md；最大档用于 N2 / N4）
 SIGMA_LEVELS = {"act": (4.0, 8.0, 16.0), "dp": (4.0, 8.0, 16.0)}
 D_LEVELS = {"act": (2, 5, 10), "dp": (1, 2, 4)}
 SIGMA_MAX_ACT, D_MAX_ACT = SIGMA_LEVELS["act"][-1], D_LEVELS["act"][-1]

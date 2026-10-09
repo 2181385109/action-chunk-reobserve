@@ -1,17 +1,17 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T6a 试跑（交给用户在终端跑；执行对话不自己跑完整试跑）。
+# T6a 试跑（耗时长，在终端手动运行）。
 #   aloha ACT（GPU 渲染）：5 种策略（k=10/20/50/100 + 时间集成）× 11 种扰动条件 = 55 格，
 #   每格种子 5000–5019（20 回合），B=10。只用于调参（定强度档位和每格回合数），不作为结论。
 # 从 Windows（Git Bash 先 export MSYS_NO_PATHCONV=1）：
-#   wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/run_pilot.sh
+#   wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/run_pilot.sh
 # 中断后重新运行同一命令即可续跑：已完成的格子（summary.json 在且 20 个回合都在 episodes.csv）跳过，
 #   做到一半的格子从未完成的批次接着跑。结果：results/pilot/<格子名>/；全部跑完后自动运行 scripts/analyze_pilot.py。
 # 可选环境变量（只用于试跑 / 检查）：PILOT_OUT（默认 results/pilot）、PILOT_CONFIGS（默认 configs/pilot）、
 #   PILOT_SEEDS（默认 5000-5019）、PILOT_B（默认 10）、PILOT_CELLS（逗号分隔的格子名，默认全部 55 个）。
 #   设了 PILOT_SEEDS / PILOT_B 时配置会重新生成到 PILOT_CONFIGS（请同时设一个临时的 PILOT_CONFIGS 和 PILOT_OUT）。
 set -eo pipefail
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 PILOT_OUT="${PILOT_OUT:-results/pilot}"
 PILOT_CONFIGS="${PILOT_CONFIGS:-configs/pilot}"
 PILOT_SEEDS="${PILOT_SEEDS:-5000-5019}"

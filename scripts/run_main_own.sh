@@ -1,11 +1,11 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T10b 自训练 ACT 正式评估（交给用户在终端跑）：先跑基础水平测试（k=100，种子 1000–1499，500 回合，输出 results/own_baseline/），
+# T10b 自训练 ACT 正式评估（耗时长，在终端手动运行）：先跑基础水平测试（k=100，种子 1000–1499，500 回合，输出 results/own_baseline/），
 #   再跑 9 格（k ∈ {20, 50, 100} × {无扰动；推方块 0.06 m；动作延迟 10 步}，每格 200 回合，种子 200000–200199，
 #   所有格子同一批种子，B=10，GPU 渲染），输出 results/main_own/<格子名>/。设计见 PREREGISTRATION_OWN.md。
 #   模型 = 自训练 ACT 的第 100000 步（最终）检查点，路径和哈希写死（src/chunkre/main_own.py），config.json 里记录路径和文件哈希。
 # 用法（从 Windows，Git Bash 先 export MSYS_NO_PATHCONV=1）：
-#   wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/run_main_own.sh [选择]
+#   wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/run_main_own.sh [选择]
 # 选择（可不写 = all）：
 #   all             基础水平测试 + 9 格（顺序：基础水平测试，再 `python scripts/main_own_tools.py list` 的 9 格）
 #   baseline        只跑基础水平测试
@@ -19,7 +19,7 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 # 全部完成（基础水平测试 + 9 格）后自动运行 scripts/analyze_main_own.py -> results/main_own/main_own_report.md 等。
 # 可选环境变量（只用于检查）：MAIN_OWN_OUT（默认 results/main_own）、OWN_BASELINE_OUT（默认 results/own_baseline）。
 set -eo pipefail
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 MAIN_OUT="${MAIN_OWN_OUT:-results/main_own}"
 BASE_OUT="${OWN_BASELINE_OUT:-results/own_baseline}"
 SELECT="${1:-all}"

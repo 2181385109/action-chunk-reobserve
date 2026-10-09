@@ -1,13 +1,13 @@
 #!/bin/bash
-# 官方数字复现（交给用户在终端跑；执行对话不自己跑）。
+# 官方数字复现（耗时长，在终端手动运行）。
 #   ACT k=100（默认）与 DP k=8（默认），各跑官方评估种子 1000–1499 共 500 回合，然后与官方 83.0% / 65.4% 比较。
 # 从 Windows（Git Bash 先 export MSYS_NO_PATHCONV=1）：
-#   wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/run_repro.sh
+#   wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/run_repro.sh
 # 中断后重新运行同一命令即可续跑（已写入 CSV 的批次跳过）。
 # 可选环境变量（只用于试跑）：REPRO_OUT（默认 results/repro）、SEEDS（默认 1000-1499）、
 #   B_ACT / B_DP（默认见下，由 V5 耗时基准选出）、MODELS（默认 "act dp"）。
 set -eo pipefail
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 REPRO_OUT="${REPRO_OUT:-results/repro}"
 SEEDS="${SEEDS:-1000-1499}"
 B_ACT="${B_ACT:-10}"   # V5：ACT B=10 与 25 每回合同为约 5.6 s，B=50 环境步进超线性变慢；取 10（续跑粒度更细）

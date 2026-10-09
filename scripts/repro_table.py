@@ -21,7 +21,7 @@ NAMES = {"act": "ACT `act_aloha_sim_transfer_cube_human`", "dp": "DP `diffusion_
 
 def block(res: dict) -> str:
     L = [BEGIN, "",
-         "### 复现结果（T2 脚本 `scripts/run_repro.sh`，用户 2026-10-07 跑完；由 `scripts/repro_table.py` 从 "
+         "### 复现结果（T2 脚本 `scripts/run_repro.sh`，2026-10-07 手动运行完成；由 `scripts/repro_table.py` 从 "
          "`results/repro/compare_official.json` 生成，勿手改）", "",
          "设置：官方种子 1000–1499 各 500 回合，官方默认推理设置（ACT k=100 无时间集成、DP k=8），GPU 渲染（D3D12）；"
          "逐回合结果 `results/repro/{act,dp}/episodes.csv`。", "",

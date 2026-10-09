@@ -3,9 +3,9 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 # T2 正确性检查 V1–V4。V5 耗时基准另见 scripts/bench_timing.sh（必须单独跑）。
 # 用法：bash scripts/t2_checks.sh                  （默认 ACT、DP 依次串行；先删掉该模型旧的 results/t2_checks/<model>_*）
 #       MODELS=act bash scripts/t2_checks.sh       （只重跑 ACT）
-#       PARALLEL=1 bash scripts/t2_checks.sh       （两条链并行；注意：并行时 GPU 被另一个进程占用，见 HANDOFF“ACT 不确定性”）
+#       PARALLEL=1 bash scripts/t2_checks.sh       （两条链并行；注意：并行时 GPU 被另一个进程占用，见 docs/ENVIRONMENT.md 的渲染确定性说明）
 set -eo pipefail
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 OUT=results/t2_checks
 mkdir -p $OUT
 MODELS="${MODELS:-act dp}"

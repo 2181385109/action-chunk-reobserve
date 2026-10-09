@@ -2,7 +2,7 @@
 在 PREREGISTRATION_OWN.md 没有提交的仓库里被拦住。在一个临时 git 仓库里做（里面只提交了 ACT 和 DP 的登记，没有 OWN 登记），
 不跑任何回合，也不动本仓库。分两层演示：① check_seeds(guard_model(...))；② 真正的 runner.run_eval（把它用的守卫指到临时仓库）。
 
-  wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/seed_guard_demo_own.sh
+  wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/seed_guard_demo_own.sh
 """
 import functools
 import subprocess

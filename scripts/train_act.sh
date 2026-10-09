@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T10a：自训练 ACT（用户在终端跑）。lerobot 0.3.3 自带训练脚本（python -m lerobot.scripts.train，不改源码），官方超参数。
-#   wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/train_act.sh
+# T10a：自训练 ACT（耗时长，在终端手动运行）。lerobot 0.3.3 自带训练脚本（python -m lerobot.scripts.train，不改源码），官方超参数。
+#   wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/train_act.sh
 # 中断（Ctrl+C、关机、WSL 被关）后重跑同一命令 = 从最新检查点（每 5000 步一个）续训；中断前最后一个检查点之后的步数会重跑。
 # 输出（权重、检查点）在 WSL 的 $OUT（默认 /root/train_out/act_own/，不进仓库）；
 # 日志在 $LOG_DIR（默认 results/train_act_own/）：train_log.txt（原始日志，多次续训追加）、loss.csv、loss.png。
@@ -9,7 +9,7 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 set -o pipefail
 source scripts/env.sh
 
-# ---- 正式设置（T10a 实测后确定，见 HANDOFF.md“训练步数怎么定的”）----
+# ---- 正式设置（T10a 实测后确定；步数规则见 scripts/train_act_tools.py 的 plan_steps，测速见 results/train_act_own/prep/）----
 STEPS="${STEPS:-100000}"          # 官方步数；实测 5.84 步/秒 → 估计 4.76 小时 <= 10 小时 → 用官方步数
 WORKERS="${WORKERS:-4}"           # 与官方相同；实测 WSL 内存峰值 3.8 / 9.7 GB
 SAVE_FREQ="${SAVE_FREQ:-5000}"

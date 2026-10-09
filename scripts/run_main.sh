@@ -1,9 +1,9 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T6b 正式评估（交给用户在终端跑）：aloha ACT（GPU 渲染）× 4 种策略 × 10 种条件 = 40 格，
+# T6b 正式评估（耗时长，在终端手动运行）：aloha ACT（GPU 渲染）× 4 种策略 × 10 种条件 = 40 格，
 #   每格 200 回合（种子 200000–200199，所有格子同一批种子），B=10。设计见 PREREGISTRATION.md。
 # 用法（从 Windows，Git Bash 先 export MSYS_NO_PATHCONV=1）：
-#   wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/run_main.sh [格子子集]
+#   wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/run_main.sh [格子子集]
 # 格子子集（可不写 = 全部 40 格）：
 #   1-20            第 1 到第 20 格（顺序见 `python scripts/main_tools.py list`）
 #   21-40           第 21 到第 40 格
@@ -13,7 +13,7 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 # 种子保护：PREREGISTRATION.md 没有提交（git commit）之前，>=200000 的种子会被 seed_guard 拦住，一个回合都不会跑。
 # 输出：results/main/<格子名>/（config.json、episodes.csv、summary.json）；40 格全部跑完后自动运行 scripts/analyze_main.py。
 set -eo pipefail
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 MAIN_OUT="${MAIN_OUT:-results/main}"        # 只用于检查；默认值就是正式设置
 SELECT="${1:-all}"
 SEEDS=$(python scripts/main_tools.py seeds)

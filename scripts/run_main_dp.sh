@@ -1,10 +1,10 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T9 DP 正式评估（交给用户在终端跑）：PushT Diffusion Policy（lerobot/diffusion_pusht）× 3 种执行长度 k ∈ {4, 8, 15}
+# T9 DP 正式评估（耗时长，在终端手动运行）：PushT Diffusion Policy（lerobot/diffusion_pusht）× 3 种执行长度 k ∈ {4, 8, 15}
 #   × 4 种条件（无扰动；推 T 形块 d=60；动作延迟 2 步；动作延迟 4 步）= 12 格，
 #   每格 200 回合（种子 200000–200199，所有格子同一批种子），B=50。设计见 PREREGISTRATION_DP.md。
 # 用法（从 Windows，Git Bash 先 export MSYS_NO_PATHCONV=1）：
-#   wsl.exe -d Ubuntu-24.04 -u root -- bash /mnt/d/xiangmu/chunk-reobserve/scripts/run_main_dp.sh [格子子集]
+#   wsl.exe -d Ubuntu-24.04 -u root -- bash <repo>/scripts/run_main_dp.sh [格子子集]
 # 格子子集（可不写 = 全部 12 格）：
 #   1-6             第 1 到第 6 格（顺序见 `python scripts/main_dp_tools.py list`）
 #   7-12            第 7 到第 12 格
@@ -16,7 +16,7 @@ cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from r
 #   scripts/analyze_main_dp.py（H4–H5 + 次要指标）和 scripts/analyze_interaction.py（探索性“差距变化”，要读 results/main/）。
 # 可选环境变量（只用于检查）：MAIN_DP_OUT（默认 results/main_dp）。
 set -eo pipefail
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 MAIN_OUT="${MAIN_DP_OUT:-results/main_dp}"
 SELECT="${1:-all}"
 MT="python scripts/main_dp_tools.py"

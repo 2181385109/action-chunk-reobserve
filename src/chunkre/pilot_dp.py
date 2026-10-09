@@ -2,7 +2,7 @@
 纯计算，不依赖仿真，单元测试覆盖。
 
 只在调参种子上描述 DP 的 k × 扰动关系，不作为结论。格子名 = "<策略>__<扰动>"，如 k8__none、k2__push40、k15__noise16、k4__delay2。
-推 T 形块的档位 20 / 40 / 60（PushT 坐标，T 形块整体 120×120）和窗口 [20, 80] 的依据见 HANDOFF.md；
+推 T 形块的档位 20 / 40 / 60（PushT 坐标，T 形块整体 120×120）和窗口 [20, 80] 的依据见 results/t8_dp_baseline/baseline.md；
 噪声 σ 与 ACT 正式实验相同的绝对档位 4 / 8 / 16（0–255）；延迟 1 / 2 / 4 步（10 Hz：100 / 200 / 400 ms，T5 建议）。
 """
 from __future__ import annotations

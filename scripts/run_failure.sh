@@ -1,11 +1,11 @@
 #!/bin/bash
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
-# T13 失败案例分析数据（交给用户在终端跑，约 40 分钟）：预训练 ACT，7 格 = k20、k100 × {无扰动, 推 0.06, 延迟 10} + k50 延迟 10；
+# T13 失败案例分析数据（耗时长，约 40 分钟，在终端手动运行）：预训练 ACT，7 格 = k20、k100 × {无扰动, 推 0.06, 延迟 10} + k50 延迟 10；
 #   种子 7000–7049（调试区间，之前没用过），每格 50 回合，B=10，GPU 渲染，全部 --log-traj（含 T13 指尖位置），
 #   每格前 3 个种子存画面（推的两格前 10 个），每 3 步一张。输出 results/failure/<格子名>/；全部完成后自动运行
 #   scripts/analyze_failure.py report -> results/failure/failure_report.md + 图。
 # 用法（从 Windows）：
-#   wsl.exe -d Ubuntu-24.04 -u root --cd /mnt/d/xiangmu/chunk-reobserve -- bash scripts/run_failure.sh
+#   wsl.exe -d Ubuntu-24.04 -u root --cd <repo> -- bash scripts/run_failure.sh
 # 可续跑：中断后重新运行同一命令即可（已完成的格子跳过；做到一半的从未完成的批次接着跑）。
 # 只用于冒烟自检的环境变量：FAIL_OUT（默认 results/failure）、FAIL_SEEDS（默认 7000-7049）、FAIL_CELLS（逗号分隔，默认 7 格）、
 #   FAIL_BATCH（默认 10）、FAIL_LABEL（报告第一行的标注）。

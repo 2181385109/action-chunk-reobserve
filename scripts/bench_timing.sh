@@ -2,7 +2,7 @@
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." || exit 1   # run from repo root, whatever the caller cwd
 # V5 耗时基准（约 3–4 分钟）。必须单独跑（不要与其他评估并行，否则耗时不准）。
 # 用法：bash scripts/bench_timing.sh   [BS=1,10,25,50]
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 OUT=results/t2_checks
 mkdir -p $OUT
 rm -f $OUT/timing_raw_act.csv $OUT/timing_raw_dp.csv
@@ -17,10 +17,10 @@ for m in act dp; do
     fi
   done
 done
-# 对照：ACT 在 CPU 软渲染（llvmpipe，逐字节可复现）下的耗时，供统筹决定渲染器时参考
+# 对照：ACT 在 CPU 软渲染（llvmpipe，逐字节可复现）下的耗时，供选择渲染器时参考
 rm -f $OUT/timing_raw_act_cpu.csv
 export CHUNK_RENDER=cpu
-source /mnt/d/xiangmu/chunk-reobserve/scripts/env.sh
+source scripts/env.sh
 for b in ${BS_CPU:-1,10}; do
   for bb in ${b//,/ }; do
     python scripts/bench_timing.py measure act --variant _cpu --Bs $bb 2>&1 | grep -E "\[bench|Error|Killed" || break
