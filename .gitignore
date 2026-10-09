@@ -21,3 +21,6 @@ wandb/
 *.log
 # T8b D2 每步画面（约 6 MB）不入库；推前推后对比图在 results/t8_checks/d2_seed*.png，GIF 照常入库
 results/t8_checks/d2_k8_dmax/frames/seed*/
+# T13 失败分析的每步画面（约 120 MB）不入库；只提交 results/failure/ 下的拼图
+results/failure/*/frames/
+results/failure_smoke/*/frames/

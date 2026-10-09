@@ -19,6 +19,10 @@
   cube_pos (T, B, 3) float32         只有 aloha：第 t 步（执行动作前）方块的位置 xyz（米），读自 physics.data.qpos[16:19]
   cube_pos_after (T, B, 3) float32   只有 aloha 且开了改仿真状态的扰动（T4 push）：第 t 步 on_state 钩子之后、
                                      env.step 之前的方块位置。推的那一步 cube_pos_after - cube_pos = 实际推的位移，其他步两者相同。
+  finger_tip (T, B, 4, 3) float32    只有 aloha（T13）：第 t 步（执行动作前）4 个手指的指尖位置 xyz（米），顺序见 FINGER_GEOMS
+                                     （左臂左指、左臂右指、右臂左指、右臂右指）。指尖 = 手指网格在手指 body 坐标系里沿 +x
+                                     （夹爪朝向）最远 5 mm 内顶点的平均点（只在第一次读时由模型算一次），每步用 body 的 xpos / xmat
+                                     变换到世界坐标。只读 physics.data，不调用 forward / step。
   block_pose (T, B, 3) float32       只有 PushT（T8b）：第 t 步（执行动作前）T 形块的 pymunk body 位置 x、y（PushT 坐标，0–512）
                                      和角度（弧度，未取模），读自 env.unwrapped.block
   block_pose_after (T, B, 3) float32 只有 PushT 且开了改仿真状态的扰动（T8b push）：同 cube_pos_after
@@ -46,6 +50,55 @@ def cube_positions(env) -> np.ndarray | None:
         if not hasattr(u, "_env") or not hasattr(u._env, "physics"):
             return None
         out.append(np.array(u._env.physics.data.qpos[16:19], dtype=np.float64))
+    return np.stack(out)
+
+
+FINGER_GEOMS = ("vx300s_left/10_left_gripper_finger", "vx300s_left/10_right_gripper_finger",
+                "vx300s_right/10_left_gripper_finger", "vx300s_right/10_right_gripper_finger")
+TIP_BAND = 0.005   # 指尖 = 沿 +x 最远 5 mm 内的网格顶点平均
+_TIP_CACHE: dict = {}
+
+
+def finger_tip_offsets(physics) -> tuple[list[int], np.ndarray]:
+    """4 个手指：(body id 列表, 指尖在各自 body 坐标系里的位置 (4, 3))。只读模型常量；同一模型只算一次。"""
+    m = physics.model
+    key = (int(m.ngeom), int(m.nbody), int(m.nmeshvert))
+    if key in _TIP_CACHE:
+        return _TIP_CACHE[key]
+    bodies, offs = [], []
+    for name in FINGER_GEOMS:
+        g = m.name2id(name, "geom")
+        mid = int(m.geom_dataid[g])
+        v = np.asarray(m.mesh_vert[m.mesh_vertadr[mid]:m.mesh_vertadr[mid] + m.mesh_vertnum[mid]], dtype=np.float64)
+        q = np.asarray(m.geom_quat[g], dtype=np.float64)
+        R = _quat_to_mat(q)
+        vb = v @ R.T + np.asarray(m.geom_pos[g], dtype=np.float64)       # 网格顶点 -> 手指 body 坐标系
+        sel = vb[vb[:, 0] >= vb[:, 0].max() - TIP_BAND]
+        bodies.append(int(m.geom_bodyid[g]))
+        offs.append(sel.mean(axis=0))
+    _TIP_CACHE[key] = (bodies, np.stack(offs))
+    return _TIP_CACHE[key]
+
+
+def _quat_to_mat(q) -> np.ndarray:
+    w, x, y, z = (float(c) for c in q / np.linalg.norm(q))
+    return np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+                     [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+                     [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]])
+
+
+def finger_tips(env) -> np.ndarray | None:
+    """aloha：各环境 4 个指尖的世界坐标 (B, 4, 3)（顺序见 FINGER_GEOMS）；不是 aloha 时返回 None。只读。"""
+    out = []
+    for e in env.envs:
+        u = e.unwrapped
+        if not hasattr(u, "_env") or not hasattr(u._env, "physics"):
+            return None
+        ph = u._env.physics
+        bodies, offs = finger_tip_offsets(ph)
+        xpos = np.asarray(ph.data.xpos, dtype=np.float64)
+        xmat = np.asarray(ph.data.xmat, dtype=np.float64)
+        out.append(np.stack([xpos[b] + xmat[b].reshape(3, 3) @ o for b, o in zip(bodies, offs)]))
     return np.stack(out)
 
 
@@ -127,6 +180,9 @@ class TrajRecorder:
         ob = object_state(env)
         if ob is not None:
             row[ob[0]] = ob[1].astype(np.float32)
+        tips = finger_tips(env)
+        if tips is not None:
+            row["finger_tip"] = tips.astype(np.float32)
         if chunk is not None:
             offs = [o for o in CHUNK_OFFSETS if o < chunk.shape[1]]
             row["chunk_sel"] = np.asarray(chunk[:, offs], dtype=np.float32)
@@ -181,6 +237,8 @@ class TrajRecorder:
         for key in ("cube_pos", "cube_pos_after", "block_pose", "block_pose_after"):
             if key in self.rows[0]:
                 out[key] = stack(key, (3,))
+        if "finger_tip" in self.rows[0]:
+            out["finger_tip"] = stack("finger_tip", self.rows[0]["finger_tip"].shape[1:])
         if hasattr(self, "_offs"):
             out["chunk_offsets"] = np.array(self._offs, dtype=np.int16)
             out["chunk_sel"] = stack("chunk_sel", (len(self._offs), A))
