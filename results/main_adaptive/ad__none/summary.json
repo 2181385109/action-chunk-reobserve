@@ -1,0 +1,35 @@
+{
+  "name": "ad__none",
+  "model": "act",
+  "mode": "adaptive",
+  "k": 100,
+  "batch_size": 10,
+  "seeds": "200000..200199 (n=200)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 200,
+    "n_success": 142,
+    "success_rate": 0.71,
+    "success_ci95_wilson": [
+      0.6436252189922268,
+      0.7684597439293211
+    ],
+    "mean_policy_calls": 34.205,
+    "mean_smoothness": 0.02471891973280992,
+    "mean_steps": 338.625,
+    "mean_steps_success": 313.556338028169,
+    "mean_sum_reward": 235.155,
+    "mean_max_reward": 3.305,
+    "n_capped": 0,
+    "n_batches": 20,
+    "total_batch_wall_s": 1181.2429624919605,
+    "wall_s_per_episode": 5.906214812459803,
+    "mean_path_length": 8.31110777461405,
+    "mean_jerk": 0.020421387081294373,
+    "mean_reversal_rate": 0.3482126601365455,
+    "mean_n_checks": 31.7,
+    "mean_n_replans_diff": 4.32,
+    "mean_n_replans_exhaust": 1.505
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}
