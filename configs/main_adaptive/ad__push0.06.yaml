@@ -1,0 +1,17 @@
+# T11b 自适应规则正式评估格子 ad__push0.06（由 scripts/main_adaptive_tools.py gen 生成，不要手改）
+name: ad__push0.06
+model: act
+seeds: 200000-200199
+batch_size: 10
+mode: adaptive
+adaptive:
+  m: 10
+  tau: 0.2906
+  h_cmp: 20
+  min_gap: 20
+perturb:
+  kind: push
+  strength: 0.06
+  params:
+    t_lo: 20
+    t_hi: 100

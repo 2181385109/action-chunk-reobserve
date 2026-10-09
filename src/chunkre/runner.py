@@ -421,7 +421,7 @@ def run_eval(cfg: EvalConfig, out_dir: Path, policy_and_info=None, log=print) ->
     断点续跑：out_dir 里已有相同配置的 episodes.csv 时，已完整写入的批次直接跳过。
     每批开始都用该批第一个种子重设全局种子，所以续跑结果与一次跑完逐回合相同。
     """
-    check_seeds(cfg.seeds, model=guard_model(cfg.model, cfg.policy_path))   # 本地 ACT 检查点 -> PREREGISTRATION_OWN.md
+    check_seeds(cfg.seeds, model=guard_model(cfg.model, cfg.policy_path, cfg.mode))   # 本地 ACT 检查点 -> OWN；adaptive -> ADAPTIVE
     if cfg.policy_path is not None:
         # 解析符号链接（checkpoints/last -> 005000）：指纹里记实际检查点，“last”以后指向别的检查点时不会续写进同一结果
         cfg.policy_path = str(Path(cfg.policy_path).resolve())

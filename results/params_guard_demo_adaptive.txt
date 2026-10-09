@@ -1,0 +1,26 @@
+# 1) tau 改成 0.3（登记 0.2906）
+PREREGISTRATION_ADAPTIVE.md 已提交，种子检查通过
+写出 2 个配置 -> /tmp/tmp.VrvtsZLl92/cfg（种子 200000-200199；自适应参数 {'m': 10, 'tau': 0.3, 'h_cmp': 20, 'min_gap': 20}；**与登记常量不同**）
+运行参数与 PREREGISTRATION_ADAPTIVE.md 不一致：
+  ad__none.yaml: tau = 0.3，登记为 0.2906
+  ad__push0.06.yaml: tau = 0.3，登记为 0.2906
+=== 参数核对失败：要跑的自适应参数与 PREREGISTRATION_ADAPTIVE.md 不一致。没有运行任何回合。
+退出码 4（期望 4）；输出目录是否被创建：否
+
+# 2) m 改成 20（登记 10）
+PREREGISTRATION_ADAPTIVE.md 已提交，种子检查通过
+写出 2 个配置 -> /tmp/tmp.VrvtsZLl92/cfg（种子 200000-200199；自适应参数 {'m': 20, 'tau': 0.2906, 'h_cmp': 20, 'min_gap': 20}；**与登记常量不同**）
+运行参数与 PREREGISTRATION_ADAPTIVE.md 不一致：
+  ad__none.yaml: m = 20，登记为 10
+  ad__push0.06.yaml: m = 20，登记为 10
+=== 参数核对失败：要跑的自适应参数与 PREREGISTRATION_ADAPTIVE.md 不一致。没有运行任何回合。
+退出码 4（期望 4）；输出目录是否被创建：否
+
+# 3) min_gap 改成 10（登记 20）
+PREREGISTRATION_ADAPTIVE.md 已提交，种子检查通过
+写出 2 个配置 -> /tmp/tmp.VrvtsZLl92/cfg（种子 200000-200199；自适应参数 {'m': 10, 'tau': 0.2906, 'h_cmp': 20, 'min_gap': 10}；**与登记常量不同**）
+运行参数与 PREREGISTRATION_ADAPTIVE.md 不一致：
+  ad__none.yaml: min_gap = 10，登记为 20
+  ad__push0.06.yaml: min_gap = 10，登记为 20
+=== 参数核对失败：要跑的自适应参数与 PREREGISTRATION_ADAPTIVE.md 不一致。没有运行任何回合。
+退出码 4（期望 4）；输出目录是否被创建：否

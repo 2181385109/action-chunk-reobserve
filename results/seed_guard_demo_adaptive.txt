@@ -1,0 +1,14 @@
+# 临时仓库：已提交 ACT / DP / OWN 的登记，没有 PREREGISTRATION_ADAPTIVE.md
+[hub 预训练 ACT (fixed)   ] model='act' mode='fixed' policy_path=None (守卫键 'act'): 通过（放行）
+[DP (fixed)                ] model='dp' mode='fixed' policy_path=None (守卫键 'dp'): 通过（放行）
+[自训练 ACT (fixed)       ] model='act' mode='fixed' policy_path=本地检查点 (守卫键 'act_own'): 通过（放行）
+[自适应 (adaptive)         ] model='act' mode='adaptive' policy_path=None (守卫键 'act_adaptive'): RuntimeError: 种子 200000 >= 200000 仅用于最终评估，而 PREREGISTRATION_ADAPTIVE.md 尚未提交，禁止使用。
+[自适应 + 自训练检查点    ] model='act' mode='adaptive' policy_path=本地检查点 (守卫键 'act_adaptive_own'): ValueError: 未知模型 'act_adaptive_own'，没有对应的登记文件
+[自适应 (adaptive)         ] run_eval(mode=adaptive, seeds 200000-200009): RuntimeError: 种子 200000 >= 200000 仅用于最终评估，而 PREREGISTRATION_ADAPTIVE.md 尚未提交，禁止使用。（输出目录已创建：False）
+# 写了 PREREGISTRATION_ADAPTIVE.md 但还没 git commit
+[自适应 (adaptive)         ] model='act' mode='adaptive' policy_path=None (守卫键 'act_adaptive'): RuntimeError: 种子 200000 >= 200000 仅用于最终评估，而 PREREGISTRATION_ADAPTIVE.md 尚未提交，禁止使用。
+# 提交 PREREGISTRATION_ADAPTIVE.md 之后
+[自适应 (adaptive)         ] model='act' mode='adaptive' policy_path=None (守卫键 'act_adaptive'): 通过（放行）
+[自适应 + 自训练检查点    ] model='act' mode='adaptive' policy_path=本地检查点 (守卫键 'act_adaptive_own'): ValueError: 未知模型 'act_adaptive_own'，没有对应的登记文件
+=== seed_guard 拦截：种子 200000-200199 在 PREREGISTRATION_ADAPTIVE.md 提交之前不能用于自适应规则。没有运行任何回合。
+演示通过：hub 预训练 ACT / DP / 自训练 ACT 不受影响；自适应在 ADAPTIVE 登记提交前被拦（包括真正的 run_eval），提交后放行；自适应 + 本地检查点（登记没覆盖）始终被拦。

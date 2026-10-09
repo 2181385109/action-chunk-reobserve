@@ -117,7 +117,7 @@ def test_run_eval_passes_model_to_seed_guard():
 
     from chunkre import runner
     src = inspect.getsource(runner.run_eval)
-    assert "check_seeds(cfg.seeds, model=guard_model(cfg.model, cfg.policy_path))" in src   # T10b：本地 ACT 检查点 -> OWN 登记
+    assert "check_seeds(cfg.seeds, model=guard_model(cfg.model, cfg.policy_path, cfg.mode))" in src   # T10b 本地检查点 -> OWN；T11b adaptive -> ADAPTIVE
 
 
 def test_repo_dp_prereg_is_committed():

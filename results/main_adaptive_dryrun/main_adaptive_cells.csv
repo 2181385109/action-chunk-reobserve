@@ -1,0 +1,11 @@
+condition,policy,available,n,n_success,rate,wilson_lo,wilson_hi,mean_calls,paired,diff_vs_adaptive,diff_lo,diff_hi
+none,k20,True,200,124,0.62,0.551067,0.68441,18.46,False,,,
+none,k50,True,200,148,0.74,0.675093,0.795862,6.905,False,,,
+none,k100,True,50,40,0.8,0.669629,0.887562,3.38,True,0.02,-0.08,0.12
+none,te,True,200,153,0.765,0.701586,0.818426,335.63,False,,,
+none,ad,True,50,41,0.82,0.692039,0.902298,33.76,,,,
+push0.06,k20,True,200,102,0.51,0.441186,0.578437,18.845,False,,,
+push0.06,k50,True,200,81,0.405,0.339378,0.474203,7.515,False,,,
+push0.06,k100,True,50,9,0.18,0.0977019,0.307961,3.94,True,0.22,0.06,0.38
+push0.06,te,True,200,47,0.235,0.181574,0.298414,377.86,False,,,
+push0.06,ad,True,50,20,0.4,0.276084,0.538186,37.4,,,,
