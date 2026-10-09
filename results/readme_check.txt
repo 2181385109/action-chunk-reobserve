@@ -1,4 +1,4 @@
-README number check: 99 ok, 0 problems
+README number check: 114 ok, 0 problems
 README: README.md; sources: results/**/*.json, *.csv
 
 ok    hypothesis H1: 7 numbers ok
@@ -89,6 +89,21 @@ ok    prose ACT delay5 te: '0.715'
 ok    prose ACT delay10 te: '0.605'
 ok    prose ACT delay5 k20: '0.010'
 ok    prose ACT delay10 k20: '0.000'
+ok    prose failure: cells x episodes: '7 cells'
+ok    prose failure: seeds: 'seeds 7000–7049, 50 episodes per cell'
+ok    prose failure push: first re-prediction: 'median 11 (k=20) vs 41 (k=100)'
+ok    prose failure push: plan age: 'median 13 (k=20) vs 58 (k=100)'
+ok    prose failure push: grasp distance: 'median 0.013 m (k=20) vs 0.038 m (k=100)'
+ok    prose failure push: never lifted: '19/50 (k=20) vs 29/50 (k=100)'
+ok    prose failure push: no close before re-prediction: 'in no episode'
+ok    prose failure push: open-loop steps: 'about 58 steps'
+ok    prose failure delay: jump: 'median 0.172 rad for k=20'
+ok    prose failure delay: within-chunk: '0.008 rad between adjacent steps'
+ok    prose failure delay: backward share: 'a share of 1.00 of the switches'
+ok    prose failure delay: switches: '19 for k=20, about 3 for k=100'
+ok    prose failure delay: k20 never lifted: '49/50 for k=20'
+ok    prose failure delay: k50 lifted not finished: '32/50 lifted the cube'
+ok    prose failure delay: k20 switches per episode: '19 times per episode'
 ok    prose agreement range (same-seed, cells with a success): '0.695–0.815'
 ok    prose DP gap none: '-0.240'
 ok    prose DP gap push: '-0.350'

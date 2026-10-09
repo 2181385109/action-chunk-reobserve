@@ -17,7 +17,7 @@ adaptive re-observation rule. It measures how *k* (and temporal ensembling) trad
   a push (HA1 supported), but non-inferiority without perturbation was not shown (HA2), and it did **not** beat the fixed k=50
   while using about 5× as many policy calls.
 
-*Status: all four parts are done (see [Status](#status)); the failure-case analysis is planned after release. The repository is private for now.*
+*Status: all four parts are done (see [Status](#status)); the failure-case analysis is done (exploratory). The repository is private for now.*
 
 ## Research question
 
@@ -334,6 +334,34 @@ so these timings are not a clean measure of "reaction to the push". In 2 episode
 
 ---
 
+## Failure analysis (exploratory)
+
+**Exploratory and descriptive only: debugging seeds 7000–7049, 50 episodes per cell, no hypothesis test; the mechanisms below are explanations that fit the data, not demonstrated causes.** Pretrained ACT, 7 cells (k=20 and k=100 × {none, push 0.06 m, delay 10}, plus k=50 under delay 10); every number is read from [`results/failure/failure_summary.json`](results/failure/failure_summary.json) (full report: [`failure_report.md`](results/failure/failure_report.md); definitions fixed before the data: [`definitions.md`](results/failure/definitions.md)). An episode is "never lifted" if the cube never rose 0.04 m (one cube edge) above the table, and "lifted, not finished" if it did but the task still failed. The same seed gives the same push time in both cells.
+
+**Push 0.06 m: why k=100 fails more often.**
+- Steps from the push to the first re-prediction: median 11 (k=20) vs 41 (k=100).
+- Plan age when the right gripper closes after the push (how many steps earlier the executed chunk was predicted): median 13 (k=20) vs 58 (k=100).
+- Horizontal distance between the grasp point (midpoint of the right fingertips) and the cube centre at that closing: median 0.013 m (k=20) vs 0.038 m (k=100); the cube edge is 0.04 m.
+- Never lifted: 19/50 (k=20) vs 29/50 (k=100).
+- Reading that fits the data: in no episode did the gripper close before the first re-prediction after the push, so k=100 is not grasping with the plan made before the push; one plan is executed open-loop for about 58 steps, and the deviation caused by the push is not corrected during that time.
+
+![Push timing](docs/figures/fig_push_timing.png)
+
+*Histograms over the 50 episodes per cell: steps from the push to the first re-prediction (left) and horizontal grasp-point–cube distance at the first closing after the push (right), k=20 vs k=100, push 0.06 m (exploratory, seeds 7000–7049).*
+
+**Delay 10: why k=20 fails everywhere.**
+- At each chunk switch the first executed action jumps (12 joints, L2): median 0.172 rad for k=20, against 0.008 rad between adjacent steps inside a chunk.
+- The jump points backwards (negative cosine with the motion over the previous 5 steps) in a share of 1.00 of the switches (k=20).
+- Chunk switches per episode: 19 for k=20, about 3 for k=100.
+- Never lifted: 49/50 for k=20. k=50 fails differently: 32/50 lifted the cube and did not finish.
+- Reading that fits the data: with a 10-step delay the new plan is built from a state the arm has already left, so every switch pulls the arm back; k=20 does this 19 times per episode and never gets to the cube, while k=100 does it about 3 times.
+
+![Delay joints](docs/figures/fig_delay_joints_seed7000.png)
+
+*One k=20, delay-10 failure (seed 7000, never lifted), right-arm channels: executed action (solid) vs observed position (dashed); dotted lines mark the first executed action of each new chunk (exploratory).*
+
+---
+
 ## Negative and unexpected results
 
 - **H2 is not supported.** Under σ=16, k=100 is ahead of temporal ensembling by 8.5 points (47 vs 30 discordant seeds), but the paired CI [0.000, 0.170] reaches 0 and the Holm-adjusted p is 0.068 (the same as the raw p, because H2 has the largest raw p of the three). The data do not show a difference between k=100 and te at this noise level, and they do not show that there is none; with 200 pairs the interval is wide.
@@ -411,6 +439,6 @@ There are no other deviations.
 | 2. Diffusion Policy replication | done |
 | 3. Self-trained ACT replication | done |
 | 4. Adaptive re-observation rule | done |
-| Failure-case analysis | not done (planned after release) |
+| Failure-case analysis | done (exploratory) |
 
 Rules and workflow for contributors: [CLAUDE.md](CLAUDE.md); handoff notes: [HANDOFF.md](HANDOFF.md); Chinese notes: [docs/notes_zh/](docs/notes_zh/).

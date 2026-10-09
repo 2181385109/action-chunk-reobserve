@@ -278,6 +278,34 @@ def ad_ratio(cond: str, base: str = "k50") -> float:
     return float(d[(cond, "ad")]["mean_calls"]) / float(d[(cond, base)]["mean_calls"])
 
 
+def failure_prose_checks() -> list[tuple[str, str]]:
+    """T13 'Failure analysis (exploratory)' section: sentences built from results/failure/failure_summary.json."""
+    d = jload("failure/failure_summary.json")
+    p20, p100 = d["push"]["k20__push0.06"], d["push"]["k100__push0.06"]
+    dl = d["delay"]
+    ft = d["failure_types"]
+    n = lambda c: ft[c]["n"]
+    nl = lambda c: f"{ft[c]['never_lifted']}/{n(c)}"
+    d20 = dl["k20__delay10"]
+    return [
+        ("failure: cells x episodes", f"{len(d['cells'])} cells"),
+        ("failure: seeds", f"seeds {d['seeds'][0]}–{d['seeds'][1]}, {d['seeds'][2]} episodes per cell"),
+        ("failure push: first re-prediction", f"median {p20['first_rp']['median']:.0f} (k=20) vs {p100['first_rp']['median']:.0f} (k=100)"),
+        ("failure push: plan age", f"median {p20['plan_age']['median']:.0f} (k=20) vs {p100['plan_age']['median']:.0f} (k=100)"),
+        ("failure push: grasp distance", f"median {p20['close_dist']['median']:.3f} m (k=20) vs {p100['close_dist']['median']:.3f} m (k=100)"),
+        ("failure push: never lifted", f"{nl('k20__push0.06')} (k=20) vs {nl('k100__push0.06')} (k=100)"),
+        ("failure push: no close before re-prediction", "in no episode" if p20["n_close_before_rp"] == 0 and p100["n_close_before_rp"] == 0 else "<<close before re-prediction>>"),
+        ("failure push: open-loop steps", f"about {p100['plan_age']['median']:.0f} steps"),
+        ("failure delay: jump", f"median {d20['jump_arm']['median']:.3f} rad for k=20"),
+        ("failure delay: within-chunk", f"{d20['base_arm']['median']:.3f} rad between adjacent steps"),
+        ("failure delay: backward share", f"a share of {d20['frac_back']:.2f} of the switches"),
+        ("failure delay: switches", f"{dl['k20__delay10']['switches_per_ep']['median']:.0f} for k=20, about {dl['k100__delay10']['switches_per_ep']['median']:.0f} for k=100"),
+        ("failure delay: k20 never lifted", f"{nl('k20__delay10')} for k=20"),
+        ("failure delay: k50 lifted not finished", f"{ft['k50__delay10']['lifted_failed']}/{n('k50__delay10')} lifted the cube"),
+        ("failure delay: k20 switches per episode", f"{dl['k20__delay10']['switches_per_ep']['median']:.0f} times per episode"),
+    ]
+
+
 def prose_checks() -> list[tuple[str, str]]:
     """(label, exact README substring) for numbers that appear in running text."""
     ad = jload("main_adaptive/hypotheses_adaptive.json")
@@ -327,6 +355,7 @@ def prose_checks() -> list[tuple[str, str]]:
         ("ACT delay5 te", mc("te", "delay5")), ("ACT delay10 te", mc("te", "delay10")),
         ("ACT delay5 k20", mc("k20", "delay5")), ("ACT delay10 k20", mc("k20", "delay10")),
     ]
+    out += failure_prose_checks()
     ag = [float(r["agreement"]) for r in conc_rows() if r["item"].startswith("k") and float(r["agreement"]) < 1.0]
     out.append(("agreement range (same-seed, cells with a success)", f"{min(ag):.3f}–{max(ag):.3f}"))
     # DP baseline-gap sentence: short-vs-long gap without perturbation and under the perturbation
