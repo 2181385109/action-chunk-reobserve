@@ -1,0 +1,29 @@
+=== T13 失败案例数据：2 格 × 2 回合，种子 0-1，B=2，输出 results/failure_smoke
+    还要跑 4 回合（2 格 × 2），按 6.5 s/回合估约 0 分钟
+    （中途可 Ctrl+C，重跑同一命令续跑；笔记本请插电、关睡眠；运行期间不要同时跑其他 GPU 任务）
+=== [1/2] k20__push0.06  (13:46:12)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[k20__push0.06] model=act mode=fixed k=20 B=2 扰动=push:0.06 批次 1，已完成 0，待跑 1
+[render] GL_RENDERER = D3D12 (NVIDIA GeForce RTX 4060 Laptop GPU)
+[k20__push0.06] 批 1/1 种子 0–1 成功 1/2 用时 32.0s（策略 1.7s，环境 20.7s） 预计还需 0.0 分钟
+=== [2/2] k100__push0.06  (13:47:04)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[k100__push0.06] model=act mode=fixed k=100 B=2 扰动=push:0.06 批次 1，已完成 0，待跑 1
+[render] GL_RENDERER = D3D12 (NVIDIA GeForce RTX 4060 Laptop GPU)
+[k100__push0.06] 批 1/1 种子 0–1 成功 0/2 用时 31.8s（策略 1.3s，环境 20.2s） 预计还需 0.0 分钟
+=== 全部完成，生成报告
+写出 /mnt/d/xiangmu/chunk-reobserve/results/failure_smoke/failure_report.md
+18M	results/failure_smoke
+9.1M	results/failure_smoke/k100__push0.06/frames
+8.0M	results/failure_smoke/k20__push0.06/frames
+=== 再跑一次（应全部跳过并重新生成报告）
+=== T13 失败案例数据：2 格 × 2 回合，种子 0-1，B=2，输出 results/failure_smoke
+    还要跑 0 回合（2 格 × 2），按 6.5 s/回合估约 0 分钟
+    （中途可 Ctrl+C，重跑同一命令续跑；笔记本请插电、关睡眠；运行期间不要同时跑其他 GPU 任务）
+=== [1/2] k20__push0.06：已完成，跳过
+=== [2/2] k100__push0.06：已完成，跳过
+=== 全部完成，生成报告
+写出 /mnt/d/xiangmu/chunk-reobserve/results/failure_smoke/failure_report.md
+18M	results/failure_smoke
+9.1M	results/failure_smoke/k100__push0.06/frames
+8.0M	results/failure_smoke/k20__push0.06/frames

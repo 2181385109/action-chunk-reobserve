@@ -1,0 +1,43 @@
+{
+  "name": "k20__push0.06",
+  "model": "act",
+  "mode": "fixed",
+  "k": 20,
+  "batch_size": 2,
+  "seeds": "0..1 (n=2)",
+  "max_steps": null,
+  "metrics": {
+    "n_episodes": 2,
+    "n_success": 1,
+    "success_rate": 0.5,
+    "success_ci95_wilson": [
+      0.09453120573423074,
+      0.9054687942657693
+    ],
+    "mean_policy_calls": 18.5,
+    "mean_smoothness": 0.025080005058355247,
+    "mean_steps": 363.0,
+    "mean_steps_success": 326.0,
+    "mean_sum_reward": 161.0,
+    "mean_max_reward": 3.0,
+    "n_capped": 0,
+    "n_batches": 1,
+    "total_batch_wall_s": 32.02795175499341,
+    "wall_s_per_episode": 16.013975877496705,
+    "mean_path_length": 9.088866249445697,
+    "mean_jerk": 0.02388765327862146,
+    "mean_reversal_rate": 0.35506366222945707,
+    "perturb_kind": "push",
+    "perturb_strength": 0.06,
+    "push_status_counts": {
+      "pushed": 2,
+      "zero": 0,
+      "skipped_lifted": 0,
+      "skipped_overlap": 0,
+      "not_reached": 0
+    },
+    "n_push_clipped": 0,
+    "mean_push_d_actual": 0.06
+  },
+  "note": "metrics 由 episodes.csv 经 chunkre.metrics.summarize_rows 计算；scripts/summarize.py 可重算"
+}

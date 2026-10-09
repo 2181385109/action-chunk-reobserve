@@ -1,0 +1,85 @@
+{
+  "gl_renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "cells": {
+    "k20__none": {
+      "episodes": 5,
+      "total_steps": 1520,
+      "success_old": 5,
+      "success_new": 5,
+      "csv_columns_compared": 31,
+      "csv_identical": true,
+      "traj_arrays_compared": [
+        "action",
+        "agent_pos",
+        "alive",
+        "chunk_idx",
+        "chunk_offsets",
+        "chunk_sel",
+        "cube_pos",
+        "repredict",
+        "seeds",
+        "steps"
+      ],
+      "traj_diff": [],
+      "new_extra_arrays": [
+        "finger_tip"
+      ],
+      "finger_tip_ok": true,
+      "passed": true
+    },
+    "k20__push0.06": {
+      "episodes": 5,
+      "total_steps": 1901,
+      "success_old": 2,
+      "success_new": 2,
+      "csv_columns_compared": 31,
+      "csv_identical": true,
+      "traj_arrays_compared": [
+        "action",
+        "agent_pos",
+        "alive",
+        "chunk_idx",
+        "chunk_offsets",
+        "chunk_sel",
+        "cube_pos",
+        "cube_pos_after",
+        "repredict",
+        "seeds",
+        "steps"
+      ],
+      "traj_diff": [],
+      "new_extra_arrays": [
+        "finger_tip"
+      ],
+      "finger_tip_ok": true,
+      "passed": true
+    },
+    "k20__delay10": {
+      "episodes": 5,
+      "total_steps": 2000,
+      "success_old": 0,
+      "success_new": 0,
+      "csv_columns_compared": 31,
+      "csv_identical": true,
+      "traj_arrays_compared": [
+        "action",
+        "agent_pos",
+        "alive",
+        "chunk_idx",
+        "chunk_offsets",
+        "chunk_sel",
+        "cube_pos",
+        "policy_action",
+        "repredict",
+        "seeds",
+        "steps"
+      ],
+      "traj_diff": [],
+      "new_extra_arrays": [
+        "finger_tip"
+      ],
+      "finger_tip_ok": true,
+      "passed": true
+    }
+  }
+}
