@@ -9,11 +9,11 @@ A controlled measurement study of the **execution length *k*** of action chunks 
 adaptive re-observation rule. It measures how *k* (and temporal ensembling) trade off success against perturbations
 (a pushed object, noisy images, delayed actions) and against the number of policy calls. It does not propose a new method.
 
-**Overall conclusion: there is no *k* that is best under every perturbation.**
+**Overall conclusion: among the execution lengths tested, no single *k* is best under every perturbation** (ACT: among the fixed k, pushes favour k=20 and delays favour k=100; DP: delay 4 favours k=15, otherwise k=8 is best or tied).
 
 - **ACT (pretrained).** Pushing the object away favours a short execution length (k=20 beats k=100), action delay favours a long one
   (k=100 beats k=50). Both were pre-registered and are supported.
-- **Self-trained ACT** (our own training run of the official recipe; base level 83.2%) reproduces both ACT findings (H1', H3').
+- **Self-trained ACT** (our own training run of the official recipe; base level 83.2%) reproduces both ACT findings in one training run (H1', H3').
 - **Diffusion Policy.** "Delay → longer execution is better" also holds (H5 supported). "Push → shorter execution is better" holds
   **only for ACT**: on DP the pre-registered comparison came out the *opposite* way (H4). Most of that gap already exists without any
   perturbation: DP's short k (k=4) is far worse at baseline (see the exploratory gap-change table).
@@ -233,7 +233,7 @@ The weak-model rule (below 0.40) was **not triggered**.
 | H1' | push 0.06 m | k=20 vs k=100 | 0.450 | 0.210 | +0.240 | [+0.160, +0.320] | 62 / 14 | 2.3e-8 | 2.3e-8 | supported |
 | H3' | delay 10 | k=100 vs k=50 | 0.570 | 0.250 | +0.320 | [+0.220, +0.420] | 95 / 31 | 9.6e-9 | 1.9e-8 | supported |
 
-n = 200 paired seeds per hypothesis. Both ACT findings are reproduced by an independently trained model.
+n = 200 paired seeds per hypothesis. Both ACT findings are reproduced by one self-trained model (same recipe and data, one training seed).
 
 <details>
 <summary>All 9 cells: successes out of 200 [Wilson 95% CI]</summary>
@@ -395,11 +395,11 @@ so these timings are not a clean measure of "reaction to the push". In 2 episode
 
 - **H2 is not supported.** Under σ=16, k=100 is ahead of temporal ensembling by 8.5 points (47 vs 30 discordant seeds), but the paired CI [0.000, 0.170] reaches 0 and the Holm-adjusted p is 0.068 (the same as the raw p, because H2 has the largest raw p of the three). The data do not show a difference between k=100 and te at this noise level, and they do not show that there is none; with 200 pairs the interval is wide.
 - **DP H4 came out the opposite way.** Under push 60, k=4 is *worse* than k=15 (0.190 vs 0.540, Holm p 2.4e-13). The registration anticipated this: k=4 is far below k=15 already without perturbation (0.275 vs 0.515). Of the -0.350 gap under the push, -0.240 is already there without perturbation; the remaining exploratory gap change (-0.110, interval [-0.245, +0.020]) points towards the short k being hurt more by the push, but the interval includes 0, so there is no evidence for it. Either way, "push → shorter is better" does not hold on DP; it is an ACT result in this study, not a general one.
-- **The adaptive rule did not beat the fixed k=50.** Under push it is at 0.350 against 0.405 (difference -0.055, interval [-0.125, +0.015]) while using about 5× as many policy calls; without perturbation it is at 0.710 against 0.740. A cheap fixed k=50 is at least as good on this task.
+- **The adaptive rule did not beat the fixed k=50.** Under push it is at 0.350 against 0.405 (difference -0.055, interval [-0.125, +0.015]) while using about 5× as many policy calls; without perturbation it is at 0.710 against 0.740. The cheaper fixed k=50 was not worse in either condition (point estimates higher, intervals include 0).
 - **Winner's curse.** The adaptive rule's push result was 20/50 = 40.0% on the tuning seeds, where it was selected as the best of 6 eligible combinations; on the final seeds it is 70/200 = 35.0%. The registration had predicted a lower final value. Even the lower number is a result for a selected setting, not a clean estimate of "an adaptive rule".
 - **Short execution lengths stall the arm.** With k = 1, 2, 5 ACT succeeded in 0/20 episodes (seeds 0–19, [`results/t3_k1_diag/`](results/t3_k1_diag/README.md)); at k=1 the arm stays near its starting pose and does not go for the cube (the predicted chunk starts almost in place, so executing only its first actions never gets going; checked against LeRobot's own evaluator). k=10 had 6/20 in that diagnosis and 0–1/20 in every pilot condition (seeds 5000–5019, `results/pilot/pilot_table.md`), so k ≤ 10 was left out of the main grid.
 - **Strong noise removes all successes.** At σ=32 all four policies (k=20, 50, 100, te) had 0/20 (pilot), which is why the main noise levels stop at σ=16.
-- **Temporal ensembling does not protect against pushes.** Under push it is close to k=100: 0.675 vs 0.680 (0.02 m), 0.445 vs 0.410 (0.04 m), 0.235 vs 0.185 (0.06 m); the Wilson intervals overlap in every case (not tested).
+- **Temporal ensembling showed no visible advantage under pushes (not tested).** Under push it is close to k=100: 0.675 vs 0.680 (0.02 m), 0.445 vs 0.410 (0.04 m), 0.235 vs 0.185 (0.06 m); the Wilson intervals overlap in every case (not tested).
 - **Temporal ensembling costs about 100× more policy calls.** Mean calls per episode without perturbation: te 335.6 vs k=100 3.4 (ratio ≈ 99); under delay 10: 379.3 vs 3.9 (≈ 97). Whether the extra calls are worth it depends on the perturbation: te is the best cell under delay 10 (0.605 vs 0.475 for k=100, not tested) and elsewhere it is not clearly ahead of k=100 (intervals overlap; not tested).
 - **k=20 collapses under delay.** 0.160 / 0.010 / 0.000 at d = 3 / 5 / 10 (vs 0.620 without delay). This was already visible in the pilot; k=20 stays in the grid because H1 needs it.
 
