@@ -123,9 +123,7 @@ No result went in the opposite direction. The analysis ([`scripts/analyze_main.p
 [`results/main/hypotheses.json`](results/main/hypotheses.json), [`main_cells.csv`](results/main/main_cells.csv) and
 [`main_report.md`](results/main/main_report.md) (success rates, secondary metrics, push accounting, all with intervals).
 
-![Success rate vs perturbation strength](docs/figures/fig_main.png)
-
-*Success rate for the four policies under each perturbation (0 = no perturbation), Wilson 95% intervals. This figure is a description of all 40 cells, not a set of tests.*
+The figure at the top of this README (`docs/figures/fig_main.png`) shows the success rate of the four policies in all 40 cells, Wilson 95% intervals (a description, not a set of tests).
 
 ![Success rate vs policy calls](docs/figures/fig_cost.png)
 
