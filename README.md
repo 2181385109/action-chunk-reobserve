@@ -1,5 +1,9 @@
 # action-chunk-reobserve: how long should an action chunk be executed before re-observing?
 
+![Success rate vs perturbation strength](docs/figures/fig_main.png)
+
+*Pretrained ACT on ALOHA transfer-cube: success rate of the four policies under each perturbation (0 = no perturbation), Wilson 95% intervals. This figure is a description of all 40 cells, not a set of tests.*
+
 A controlled measurement study of the **execution length *k*** of action chunks in imitation-learning policies
 (LeRobot 0.3.3): ACT on the ALOHA sim transfer-cube task, Diffusion Policy on PushT, a self-trained ACT, and a simple
 adaptive re-observation rule. It measures how *k* (and temporal ensembling) trade off success against perturbations
